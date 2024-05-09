@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "vins.h"
-#include "midi.h"
+#include "vins.hpp"
+#include "midi.hpp"
 #include <HardwareSerial.h>
 
 // #defined vars are pure constants
@@ -21,7 +21,6 @@
 class Control {
   public:
     int target_voltage;
-    int current_voltage;
     int previous_voltage;
     byte channel;
     byte pitch;
@@ -31,7 +30,6 @@ class Control {
 
   void toggle(byte);
   void momentary(byte);
-    
 };
 
 Control::Control() { }
@@ -52,49 +50,27 @@ void Control::momentary(byte duration) {
 
 class Button : public Control {
   public:
-    // int target_voltage;
-    // int current_voltage;
-    // int previous_voltage;
-    // byte channel;
-    // byte pitch;
-
+    boolean latched;
+    int previous_velocity;
+    Button ();
     Button (int, byte, byte);
-
-    // void set(int, byte, byte);
-  
-    // void latch(byte);
-    // void momentary(byte);
 };
 
+Button::Button() { }
+
 Button::Button(int voltage, byte channel, byte pitch) {
-  // Control(voltage, channel, pitch);
   this->target_voltage = voltage;
   this->channel = channel;
   this->pitch = pitch;
 }
 
-// void Button::set(int voltage, byte channel, byte pitch) {
-//   this->voltage = voltage;
-//   this->channel = channel;
-//   this->pitch = pitch;
-// }
-
-
-
 class Fader : public Control{
   public:
-    // int target_voltage;
-    // int current_voltage;
-    // int previous_voltage;
-    // byte channel;
-    // byte pitch;
-
+    Fader ();
     Fader (int, byte, byte);
-
-    // void set(int, byte, byte);
-
-    // void latch(byte);
 };
+
+Fader::Fader() { }
 
 Fader::Fader(int voltage, byte channel, byte pitch) {
   this->target_voltage = voltage;
@@ -102,25 +78,9 @@ Fader::Fader(int voltage, byte channel, byte pitch) {
   this->pitch = pitch;
 }
 
-// void Fader::set(int voltage, byte channel, byte pitch) {
-//   this->voltage = voltage;
-//   this->channel = channel;
-//   this->pitch = pitch;
-// }
-
-// void Fader::latch(byte velocity) {
-//   latch_command(channel, pitch, velocity);
-// }
-
-
-
-
-
-
-
-// Solo mute
+// Solo
 #define BUTTON_BANK_1 A0
-// Focus
+// Mute
 #define BUTTON_BANK_2 A1
 
 #define FADER_1 A2
@@ -143,52 +103,67 @@ Fader::Fader(int voltage, byte channel, byte pitch) {
 
 // const int button_ranges[8] = {BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8};
 
-int fader_1_volt = 0;
-int fader_2_volt = 0;
-int fader_3_volt = 0;
-int fader_4_volt = 0;
-int fader_5_volt = 0;
-int fader_6_volt = 0;
-int fader_7_volt = 0;
-int fader_8_volt = 0;
+// int fader_1_volt = 0;
+// int fader_2_volt = 0;
+// int fader_3_volt = 0;
+// int fader_4_volt = 0;
+// int fader_5_volt = 0;
+// int fader_6_volt = 0;
+// int fader_7_volt = 0;
+// int fader_8_volt = 0;
 
-int fader_1_prev = 0;
-int fader_2_prev = 0;
-int fader_3_prev = 0;
-int fader_4_prev = 0;
-int fader_5_prev = 0;
-int fader_6_prev = 0;
-int fader_7_prev = 0;
-int fader_8_prev = 0;
+// int fader_1_prev = 0;
+// int fader_2_prev = 0;
+// int fader_3_prev = 0;
+// int fader_4_prev = 0;
+// int fader_5_prev = 0;
+// int fader_6_prev = 0;
+// int fader_7_prev = 0;
+// int fader_8_prev = 0;
 
-bool button_bank_1_pressed = false;
-bool button_bank_2_pressed = false;
+// bool button_bank_1_pressed = false;
+// bool button_bank_2_pressed = false;
 
-int button_bank_1_voltage;
-int button_bank_2_voltage;
-int previous_button_bank_1_voltage;
-int previous_button_bank_2_voltage;
+// int button_bank_1_voltage;
+// int button_bank_2_voltage;
+// int previous_button_bank_1_voltage;
+// int previous_button_bank_2_voltage;
 
 // uint8_t muxed_buttons = 0;
+Button solo_bank[8];
+Button mute_bank[8];
+Fader fader_bank[8];
 
 void setup()
 {
-  Button button1(BUTTON_1, 0, 51);
-  Button button2(BUTTON_2, 0, 52);
-  Button button3(BUTTON_3, 0, 53);
-  Button button4(BUTTON_4, 0, 54);
-  Button button5(BUTTON_5, 0, 55);
-  Button button6(BUTTON_6, 0, 56);
-  Button button7(BUTTON_7, 0, 57);
-  Button button8(BUTTON_8, 0, 58);
-  Button button9(BUTTON_9, 0, 59);
-  Button button10(BUTTON_10, 0, 60);
-  Button button11(BUTTON_11, 0, 62);
-  Button button12(BUTTON_12, 0, 63);
-  Button button13(BUTTON_13, 0, 64);
-  Button button14(BUTTON_14, 0, 65);
-  Button button15(BUTTON_15, 0, 66);
-  Button button16(BUTTON_16, 0, 67);
+  solo_bank[0] = Button(BUTTON_1, 0, 51);
+  solo_bank[1] = Button(BUTTON_2, 0, 52);
+  solo_bank[2] = Button(BUTTON_3, 0, 53);
+  solo_bank[3] = Button(BUTTON_4, 0, 54);
+  solo_bank[4] = Button(BUTTON_5, 0, 55);
+  solo_bank[5] = Button(BUTTON_6, 0, 56);
+  solo_bank[6] = Button(BUTTON_7, 0, 57);
+  solo_bank[7] = Button(BUTTON_8, 0, 58);
+
+  mute_bank[0] = Button(BUTTON_9, 0, 59);
+  mute_bank[1] = Button(BUTTON_10, 0, 60);
+  mute_bank[2] = Button(BUTTON_11, 0, 62);
+  mute_bank[3] = Button(BUTTON_12, 0, 63);
+  mute_bank[4] = Button(BUTTON_13, 0, 64);
+  mute_bank[5] = Button(BUTTON_14, 0, 65);
+  mute_bank[6] = Button(BUTTON_15, 0, 66);
+  mute_bank[7] = Button(BUTTON_16, 0, 67);
+
+  fader_bank[0] = Fader(FADER_1, 0, 41);  
+  fader_bank[1] = Fader(FADER_2, 0, 42);
+  fader_bank[2] = Fader(FADER_3, 0, 43);
+  fader_bank[3] = Fader(FADER_4, 0, 44);
+  fader_bank[4] = Fader(FADER_5, 0, 45);
+  fader_bank[5] = Fader(FADER_6, 0, 46);
+  fader_bank[6] = Fader(FADER_7, 0, 47);
+  fader_bank[7] = Fader(FADER_8, 0, 48);
+
+
 
   Serial.begin(9600);
   pinMode(BUTTON_BANK_1, INPUT);
@@ -205,6 +180,12 @@ void setup()
 
 void loop()
 {
+  for (int i = 0; i < 8; i++) {
+    update_button_voltage(solo_bank[i], BUTTON_BANK_1);
+    update_button_voltage(mute_bank[i], BUTTON_BANK_2);
+  }
+
+  update_faders();
   // button__bank_1_voltage = analogRead(BUTTON_BANK_1) / 32;
   // button__bank_2_voltage = analogRead(BUTTON_BANK_2) / 32;
   // read_faders();
@@ -255,6 +236,46 @@ void loop()
   // read_buttons_with_muxer();
   // Serial.print("muxed value: ");
   // Serial.println(muxed_buttons);
+}
+
+void update_faders() {
+  update_fader_voltage(fader_bank[0], FADER_1);
+  update_fader_voltage(fader_bank[1], FADER_2);
+  update_fader_voltage(fader_bank[2], FADER_3);
+  update_fader_voltage(fader_bank[3], FADER_4);
+  update_fader_voltage(fader_bank[4], FADER_5);
+  update_fader_voltage(fader_bank[5], FADER_6);
+  update_fader_voltage(fader_bank[6], FADER_7);
+  update_fader_voltage(fader_bank[7], FADER_8);
+}
+
+void update_button_voltage(Button button, const uint8_t pin) {
+  int current_voltage = analogRead(pin);
+  if (button.previous_voltage != current_voltage) {
+    switch (button.previous_velocity) {
+      case 0:
+        button.toggle(127);
+        button.previous_velocity = 127;
+        break;
+      case 127:
+        button.toggle(0);
+        button.previous_velocity = 0;
+        break;
+      default:
+        break;
+    }
+  }
+
+  button.previous_voltage = current_voltage;
+}
+
+void update_fader_voltage(Fader fader, const uint8_t pin) {
+  int current_voltage = analogRead(pin);
+  if (fader.previous_voltage != current_voltage) {
+    fader.toggle(current_voltage);
+  }
+
+  fader.previous_voltage = current_voltage;
 }
 
 
@@ -335,30 +356,6 @@ void loop()
 //     Serial.println(button_voltage);
 //   }
 // }
-
-void read_faders()
-{
-  fader_1_volt = analogRead(FADER_1) / 8;
-  fader_2_volt = analogRead(FADER_2) / 8;
-  fader_3_volt = analogRead(FADER_3) / 8;
-  fader_4_volt = analogRead(FADER_4) / 8;
-  fader_5_volt = analogRead(FADER_5) / 8;
-  fader_6_volt = analogRead(FADER_6) / 8;
-  fader_7_volt = analogRead(FADER_7) / 8;
-  fader_8_volt = analogRead(FADER_8) / 8;
-}
-
-void set_fader_previous()
-{
-  fader_1_prev = fader_1_volt;
-  fader_2_prev = fader_2_volt;
-  fader_3_prev = fader_3_volt;
-  fader_4_prev = fader_4_volt;
-  fader_5_prev = fader_5_volt;
-  fader_6_prev = fader_6_volt;
-  fader_7_prev = fader_7_volt;
-  fader_8_prev = fader_8_volt;
-}
 
 // void set_button_previous()
 // {
