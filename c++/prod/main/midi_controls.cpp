@@ -1,14 +1,4 @@
-#include <frequencyToNote.h>
-#include <MIDIUSB_Defs.h>
-#include <MIDIUSB.h>
-#include <pitchToFrequency.h>
-#include <pitchToNote.h>
-
-void controlChange(byte channel, byte control, byte value)
-{
-  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
-  MidiUSB.sendMIDI(event);
-}
+#include "midi_controls.hpp"
 
 void momentary_command(byte channel, byte pitch, byte duration)
 {
@@ -17,6 +7,11 @@ void momentary_command(byte channel, byte pitch, byte duration)
   delay(duration);
   controlChange(channel, pitch, 0);
   MidiUSB.flush();
+}
+void controlChange(byte channel, byte control, byte value)
+{
+  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
+  MidiUSB.sendMIDI(event);
 }
 
 void latch_command(byte channel, byte pitch, byte velocity)
