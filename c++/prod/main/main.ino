@@ -1,9 +1,7 @@
-#include <frequencyToNote.h>
-#include <MIDIUSB_Defs.h>
-#include <MIDIUSB.h>
-#include <pitchToFrequency.h>
-#include <pitchToNote.h>
+#include <Arduino.h>
 #include "vins.h"
+#include "midi.h"
+#include <HardwareSerial.h>
 
 // #defined vars are pure constants
 // VALID ANAOLGLUE IN:
@@ -19,6 +17,106 @@
 // A9
 // A10
 // A11
+
+class Control {
+  public:
+    int target_voltage;
+    int current_voltage;
+    int previous_voltage;
+    byte channel;
+    byte pitch;
+
+  Control ();
+  Control (int, byte, byte);
+
+  void toggle(byte);
+  void momentary(byte);
+    
+};
+
+Control::Control() { }
+
+Control::Control(int voltage, byte channel, byte pitch) {
+  this->target_voltage = voltage;
+  this->channel = channel;
+  this->pitch = pitch;
+}
+
+void Control::toggle(byte velocity) {
+  latch_command(channel, pitch, velocity);
+}
+
+void Control::momentary(byte duration) {
+  momentary_command(channel, pitch, duration);
+}
+
+class Button : public Control {
+  public:
+    // int target_voltage;
+    // int current_voltage;
+    // int previous_voltage;
+    // byte channel;
+    // byte pitch;
+
+    Button (int, byte, byte);
+
+    // void set(int, byte, byte);
+  
+    // void latch(byte);
+    // void momentary(byte);
+};
+
+Button::Button(int voltage, byte channel, byte pitch) {
+  // Control(voltage, channel, pitch);
+  this->target_voltage = voltage;
+  this->channel = channel;
+  this->pitch = pitch;
+}
+
+// void Button::set(int voltage, byte channel, byte pitch) {
+//   this->voltage = voltage;
+//   this->channel = channel;
+//   this->pitch = pitch;
+// }
+
+
+
+class Fader : public Control{
+  public:
+    // int target_voltage;
+    // int current_voltage;
+    // int previous_voltage;
+    // byte channel;
+    // byte pitch;
+
+    Fader (int, byte, byte);
+
+    // void set(int, byte, byte);
+
+    // void latch(byte);
+};
+
+Fader::Fader(int voltage, byte channel, byte pitch) {
+  this->target_voltage = voltage;
+  this->channel = channel;
+  this->pitch = pitch;
+}
+
+// void Fader::set(int voltage, byte channel, byte pitch) {
+//   this->voltage = voltage;
+//   this->channel = channel;
+//   this->pitch = pitch;
+// }
+
+// void Fader::latch(byte velocity) {
+//   latch_command(channel, pitch, velocity);
+// }
+
+
+
+
+
+
 
 // Solo mute
 #define BUTTON_BANK_1 A0
@@ -45,12 +143,6 @@
 
 // const int button_ranges[8] = {BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8};
 
-struct solo_mute {
-  int number;
-  int vin;
-  void 
-}
-
 int fader_1_volt = 0;
 int fader_2_volt = 0;
 int fader_3_volt = 0;
@@ -73,14 +165,31 @@ bool button_bank_1_pressed = false;
 bool button_bank_2_pressed = false;
 
 int button_bank_1_voltage;
-int button_bank_1_voltage;
+int button_bank_2_voltage;
 int previous_button_bank_1_voltage;
-int previous_button_bank_1_voltage;
+int previous_button_bank_2_voltage;
 
-uint8_t muxed_buttons = 0;
+// uint8_t muxed_buttons = 0;
 
 void setup()
 {
+  Button button1(BUTTON_1, 0, 51);
+  Button button2(BUTTON_2, 0, 52);
+  Button button3(BUTTON_3, 0, 53);
+  Button button4(BUTTON_4, 0, 54);
+  Button button5(BUTTON_5, 0, 55);
+  Button button6(BUTTON_6, 0, 56);
+  Button button7(BUTTON_7, 0, 57);
+  Button button8(BUTTON_8, 0, 58);
+  Button button9(BUTTON_9, 0, 59);
+  Button button10(BUTTON_10, 0, 60);
+  Button button11(BUTTON_11, 0, 62);
+  Button button12(BUTTON_12, 0, 63);
+  Button button13(BUTTON_13, 0, 64);
+  Button button14(BUTTON_14, 0, 65);
+  Button button15(BUTTON_15, 0, 66);
+  Button button16(BUTTON_16, 0, 67);
+
   Serial.begin(9600);
   pinMode(BUTTON_BANK_1, INPUT);
   pinMode(BUTTON_BANK_2, INPUT);
@@ -96,22 +205,22 @@ void setup()
 
 void loop()
 {
-  button__bank_1_voltage = analogRead(BUTTON_BANK_1) / 32;
-  button__bank_2_voltage = analogRead(BUTTON_BANK_2) / 32;
-  read_faders();
+  // button__bank_1_voltage = analogRead(BUTTON_BANK_1) / 32;
+  // button__bank_2_voltage = analogRead(BUTTON_BANK_2) / 32;
+  // read_faders();
 
-  if (button_voltage != previous_button_voltage)
-  {
-    solo_mute();
-  }
+  // if (button_voltage != previous_button_voltage)
+  // {
+  //   solo_mute();
+  // }
 
-  if (fader_1_volt > fader_1_prev || fader_1_volt < fader_1_prev)
-  {
-    latch_command(0, 41, fader_1_volt);
-  }
+  // if (fader_1_volt > fader_1_prev || fader_1_volt < fader_1_prev)
+  // {
+  //   latch_command(0, 41, fader_1_volt);
+  // }
 
-  set_fader_previous();
-  set_button_previous();
+  // set_fader_previous();
+  // set_button_previous();
   // Serial.print("FADER 1: ");
   // Serial.println(fader_1_volt);
   // Serial.print("FADER 2: ");
@@ -148,115 +257,84 @@ void loop()
   // Serial.println(muxed_buttons);
 }
 
-void momentary_command(byte channel, byte pitch, byte duration)
-{
-  controlChange(channel, pitch, 127);
-  MidiUSB.flush();
-  delay(duration);
-  controlChange(channel, pitch, 0);
-  MidiUSB.flush();
-}
 
-void latch_command(byte channel, byte pitch, byte velocity)
-{
-  controlChange(channel, pitch, velocity);
-  MidiUSB.flush();
-}
 
-void noteOn(byte channel, byte pitch, byte velocity)
-{
-  midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
-  MidiUSB.sendMIDI(noteOn);
-}
+// void read_buttons_with_muxer()
+// {
+//   switch (button_voltage)
+//   {
+//   case BUTTON_1:
+//     muxed_buttons = muxed_buttons | (byte)00000001;
+//     break;
+//   case BUTTON_2:
+//     muxed_buttons = muxed_buttons | (byte)00000010;
+//     break;
+//   case BUTTON_3:
+//     muxed_buttons = muxed_buttons | (char)00000100;
+//     break;
+//   case BUTTON_4:
+//     muxed_buttons = muxed_buttons | (char)00001000;
+//     break;
+//   case BUTTON_5:
+//     muxed_buttons = muxed_buttons | (char)00010000;
+//     break;
+//   case BUTTON_6:
+//     muxed_buttons = muxed_buttons | (char)00100000;
+//     break;
+//   case BUTTON_7:
+//     muxed_buttons = muxed_buttons | (char)01000000;
+//     break;
+//   case BUTTON_8:
+//     muxed_buttons = muxed_buttons | (char)10000000;
+//     break;
+//   default:
+//     break;
+//   }
+// }
 
-void noteOff(byte channel, byte pitch, byte velocity)
-{
-  midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
-  MidiUSB.sendMIDI(noteOff);
-}
-
-void controlChange(byte channel, byte control, byte value)
-{
-  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
-  MidiUSB.sendMIDI(event);
-}
-
-void read_buttons_with_muxer()
-{
-  switch (button_voltage)
-  {
-  case BUTTON_1:
-    muxed_buttons = muxed_buttons | (byte)00000001;
-    break;
-  case BUTTON_2:
-    muxed_buttons = muxed_buttons | (byte)00000010;
-    break;
-  case BUTTON_3:
-    muxed_buttons = muxed_buttons | (char)00000100;
-    break;
-  case BUTTON_4:
-    muxed_buttons = muxed_buttons | (char)00001000;
-    break;
-  case BUTTON_5:
-    muxed_buttons = muxed_buttons | (char)00010000;
-    break;
-  case BUTTON_6:
-    muxed_buttons = muxed_buttons | (char)00100000;
-    break;
-  case BUTTON_7:
-    muxed_buttons = muxed_buttons | (char)01000000;
-    break;
-  case BUTTON_8:
-    muxed_buttons = muxed_buttons | (char)10000000;
-    break;
-  default:
-    break;
-  }
-}
-
-void test_read_buttons()
-{
-  if (button_voltage > BUTTON_1)
-  {
-    Serial.println("Button 1");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_2)
-  {
-    Serial.println("Button 2");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_3)
-  {
-    Serial.println("Button 3");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_4)
-  {
-    Serial.println("Button 4");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_5)
-  {
-    Serial.println("Button 5");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_6)
-  {
-    Serial.println("Button 6");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_7)
-  {
-    Serial.println("Button 7");
-    Serial.println(button_voltage);
-  }
-  else if (button_voltage > BUTTON_8)
-  {
-    Serial.println("Button 8");
-    Serial.println(button_voltage);
-  }
-}
+// void test_read_buttons()
+// {
+//   if (button_voltage > BUTTON_1)
+//   {
+//     Serial.println("Button 1");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_2)
+//   {
+//     Serial.println("Button 2");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_3)
+//   {
+//     Serial.println("Button 3");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_4)
+//   {
+//     Serial.println("Button 4");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_5)
+//   {
+//     Serial.println("Button 5");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_6)
+//   {
+//     Serial.println("Button 6");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_7)
+//   {
+//     Serial.println("Button 7");
+//     Serial.println(button_voltage);
+//   }
+//   else if (button_voltage > BUTTON_8)
+//   {
+//     Serial.println("Button 8");
+//     Serial.println(button_voltage);
+//   }
+// }
 
 void read_faders()
 {
@@ -282,197 +360,197 @@ void set_fader_previous()
   fader_8_prev = fader_8_volt;
 }
 
-void set_button_previous()
-{
-  previous_button_voltage = button_voltage;
-}
+// void set_button_previous()
+// {
+//   previous_button_voltage = button_voltage;
+// }
 
 //
 // B1 B2 ...
 // B9 B10 ...
 //
 
-void focus()
-{
-  // B9
-  if (button_bank_2_voltage > BUTTON_9_LOWER && button_bank_2_voltage < BUTTON_9_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B10
-  else if (button_bank_2_voltage > BUTTON_10_LOWER && button_bank_2_voltage < BUTTON_10_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B11
-  else if (button_bank_2_voltage > BUTTON_11_LOWER && button_bank_2_voltage < BUTTON_11_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B12
-  else if (button_bank_2_voltage > BUTTON_12_LOWER && button_bank_2_voltage < BUTTON_12_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B13
-  else if (button_bank_2_voltage > BUTTON_13_LOWER && button_bank_2_voltage < BUTTON_13_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B14
-  else if (button_bank_2_voltage > BUTTON_14_LOWER && button_bank_2_voltage < BUTTON_14_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B15
-  else if (button_bank_2_voltage > BUTTON_15_LOWER && button_bank_2_voltage < BUTTON_15_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-  // B16
-  else if (button_bank_2_voltage > BUTTON_16_LOWER && button_bank_2_voltage < BUTTON_16_UPPER)
-  {
-    if (button_bank_2_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_2_pressed = false;
-    }
-  }
-}
+// void focus()
+// {
+//   // B9
+//   if (button_bank_2_voltage > BUTTON_9_LOWER && button_bank_2_voltage < BUTTON_9_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B10
+//   else if (button_bank_2_voltage > BUTTON_10_LOWER && button_bank_2_voltage < BUTTON_10_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B11
+//   else if (button_bank_2_voltage > BUTTON_11_LOWER && button_bank_2_voltage < BUTTON_11_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B12
+//   else if (button_bank_2_voltage > BUTTON_12_LOWER && button_bank_2_voltage < BUTTON_12_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B13
+//   else if (button_bank_2_voltage > BUTTON_13_LOWER && button_bank_2_voltage < BUTTON_13_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B14
+//   else if (button_bank_2_voltage > BUTTON_14_LOWER && button_bank_2_voltage < BUTTON_14_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B15
+//   else if (button_bank_2_voltage > BUTTON_15_LOWER && button_bank_2_voltage < BUTTON_15_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+//   // B16
+//   else if (button_bank_2_voltage > BUTTON_16_LOWER && button_bank_2_voltage < BUTTON_16_UPPER)
+//   {
+//     if (button_bank_2_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_2_pressed = false;
+//     }
+//   }
+// }
 
-void solo_mute()
-{
-  // B1
-  if (button_bank_1_voltage > BUTTON_1_LOWER && button_bank_1_voltage < BUTTON_1_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 51, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B2
-  else if (button_bank_1_voltage > BUTTON_2_LOWER && button_bank_1_voltage < BUTTON_2_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B3
-  else if (button_bank_1_voltage > BUTTON_3_LOWER && button_bank_1_voltage < BUTTON_3_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 53, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B4
-  else if (button_bank_1_voltage > BUTTON_4_LOWER && button_bank_1_voltage < BUTTON_4_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 54, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B5
-  else if (button_bank_1_voltage > BUTTON_5_LOWER && button_bank_1_voltage < BUTTON_5_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 55, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B6
-  else if (button_bank_1_voltage > BUTTON_6_LOWER && button_bank_1_voltage < BUTTON_6_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 56, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B7
-  else if (button_bank_1_voltage > BUTTON_7_LOWER && button_bank_1_voltage < BUTTON_7_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 57, 0);
-      button_bank_1_pressed = false;
-    }
-  }
-  // B8
-  else if (button_bank_1_voltage > BUTTON_8_LOWER && button_bank_1_voltage < BUTTON_8_UPPER)
-  {
-    if (button_bank_1_pressed)
-    {
-      latch_command(0, 52, 0);
-      button_bank_1_pressed = false;
-    }
-    // switch (button_voltage) {
-    //   case BUTTON_1:
-    //     if(button_1_pressed) {
-    //       latch_command(0, 51, 0);
-    //       button_1_pressed = false;
-    //       break;
-    //     }
-    //     latch_command(0, 51, 127);
-    //     button_1_pressed = true;
-    //     break;
-    //   case BUTTON_2:
-    //     momentary_command(0, 52, 50);
-    //     break;
-    //   case BUTTON_3:
-    //     momentary_command(0, 53, 50);
-    //     break;
-    //   case BUTTON_4:
-    //     momentary_command(0, 54, 50);
-    //     break;
-    //   case BUTTON_5:
-    //     momentary_command(0, 55, 50);
-    //     break;
-    //   case BUTTON_6:
-    //     momentary_command(0, 56, 50);
-    //     break;
-    //   case BUTTON_7:
-    //     momentary_command(0, 57, 50);
-    //     break;
-    //   case BUTTON_8:
-    //     momentary_command(0, 58, 50);
-    //     break;
-    //   default:
-    //     break;
-  }
-}
+// void solo_mute()
+// {
+//   // B1
+//   if (button_bank_1_voltage > BUTTON_1_LOWER && button_bank_1_voltage < BUTTON_1_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 51, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B2
+//   else if (button_bank_1_voltage > BUTTON_2_LOWER && button_bank_1_voltage < BUTTON_2_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B3
+//   else if (button_bank_1_voltage > BUTTON_3_LOWER && button_bank_1_voltage < BUTTON_3_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 53, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B4
+//   else if (button_bank_1_voltage > BUTTON_4_LOWER && button_bank_1_voltage < BUTTON_4_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 54, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B5
+//   else if (button_bank_1_voltage > BUTTON_5_LOWER && button_bank_1_voltage < BUTTON_5_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 55, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B6
+//   else if (button_bank_1_voltage > BUTTON_6_LOWER && button_bank_1_voltage < BUTTON_6_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 56, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B7
+//   else if (button_bank_1_voltage > BUTTON_7_LOWER && button_bank_1_voltage < BUTTON_7_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 57, 0);
+//       button_bank_1_pressed = false;
+//     }
+//   }
+//   // B8
+//   else if (button_bank_1_voltage > BUTTON_8_LOWER && button_bank_1_voltage < BUTTON_8_UPPER)
+//   {
+//     if (button_bank_1_pressed)
+//     {
+//       latch_command(0, 52, 0);
+//       button_bank_1_pressed = false;
+//     }
+//     // switch (button_voltage) {
+//     //   case BUTTON_1:
+//     //     if(button_1_pressed) {
+//     //       latch_command(0, 51, 0);
+//     //       button_1_pressed = false;
+//     //       break;
+//     //     }
+//     //     latch_command(0, 51, 127);
+//     //     button_1_pressed = true;
+//     //     break;
+//     //   case BUTTON_2:
+//     //     momentary_command(0, 52, 50);
+//     //     break;
+//     //   case BUTTON_3:
+//     //     momentary_command(0, 53, 50);
+//     //     break;
+//     //   case BUTTON_4:
+//     //     momentary_command(0, 54, 50);
+//     //     break;
+//     //   case BUTTON_5:
+//     //     momentary_command(0, 55, 50);
+//     //     break;
+//     //   case BUTTON_6:
+//     //     momentary_command(0, 56, 50);
+//     //     break;
+//     //   case BUTTON_7:
+//     //     momentary_command(0, 57, 50);
+//     //     break;
+//     //   case BUTTON_8:
+//     //     momentary_command(0, 58, 50);
+//     //     break;
+//     //   default:
+//     //     break;
+//   }
+// }
