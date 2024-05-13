@@ -18,10 +18,12 @@ def calculaite_v_bounds_error(v_ins, error):
 
 def write_ranges_error(ranges, path):
     with open(path, 'w') as main_file:
+        main_file.write('#ifndef VINS_H\n#define VINS_H\n')
         i = 1
         for range in ranges:
             main_file.write(f'#define BUTTON_{i}_LOWER {range[0]}\n#define BUTTON_{i}_UPPER {range[1]}\n#define BUTTON_{i + 8}_LOWER {range[0]}\n#define BUTTON_{i + 8}_UPPER {range[1]}\n')        
             i += 1
+        main_file.write('#endif')
 
 def write_ranges_exact(ranges, path):
     with open(path, 'w') as main_file:
@@ -31,6 +33,7 @@ def write_ranges_exact(ranges, path):
             i += 1
 
 
+
 def main():
     resistances = read_voltages('resistances.txt')
     v_ins = []
@@ -38,9 +41,6 @@ def main():
         v_ins.append(round(calcuate_v_in_value(220, resistance)))
 
     write_ranges_exact(v_ins, 'main/vins.h')
-    # bounds = calculaite_v_bounds_error(v_ins, .05)
-    # write_ranges_error(bounds, 'main/vins.h')
-
 
 if __name__ == '__main__':
     main()

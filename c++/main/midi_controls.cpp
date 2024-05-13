@@ -32,3 +32,9 @@ void noteOff(byte channel, byte pitch, byte velocity)
   MidiUSB.sendMIDI(noteOff);
 }
 
+// int calc_midi(int voltage_in) {
+//   return (voltage_in * 10 / 127);
+// }
+// this could completely remove the need for OOP. just calc the midi value on
+// the fly instead of associating a value with each button
+
