@@ -5,10 +5,14 @@
 
 class Button : public Control {
   public:
+    int voltage_high;
+    int voltage_low;
     boolean latched;
     int previous_velocity;
     Button ();
-    Button (int, byte, byte);
+    Button (int, int, byte, byte);
+
+    void toggle();
 };
 
 #endif

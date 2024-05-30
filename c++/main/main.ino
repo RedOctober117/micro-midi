@@ -4,6 +4,7 @@
 #include "midi_controls.hpp"
 #include "button.hpp"
 #include "fader.hpp"
+// #include <tuple>
 
 // Solo
 #define BUTTON_BANK_1 A0
@@ -22,26 +23,28 @@
 Button solo_bank[8];
 Button mute_bank[8];
 Fader fader_bank[8];
+// bool state = false;
+unsigned long delay_amount = 200;
 
 void setup()
 {
-  solo_bank[0] = Button(BUTTON_1, 0, 51);
-  solo_bank[1] = Button(BUTTON_2, 0, 52);
-  solo_bank[2] = Button(BUTTON_3, 0, 53);
-  solo_bank[3] = Button(BUTTON_4, 0, 54);
-  solo_bank[4] = Button(BUTTON_5, 0, 55);
-  solo_bank[5] = Button(BUTTON_6, 0, 56);
-  solo_bank[6] = Button(BUTTON_7, 0, 57);
-  solo_bank[7] = Button(BUTTON_8, 0, 58);
+  solo_bank[0] = Button(BUTTON_1_LOWER, BUTTON_1_UPPER, 0, 51);
+  solo_bank[1] = Button(BUTTON_2_UPPER, BUTTON_2_UPPER, 0, 52);
+  solo_bank[2] = Button(BUTTON_3_UPPER, BUTTON_3_UPPER, 0, 53);
+  solo_bank[3] = Button(BUTTON_4_UPPER, BUTTON_4_UPPER, 0, 54);
+  solo_bank[4] = Button(BUTTON_5_UPPER, BUTTON_5_UPPER, 0, 55);
+  solo_bank[5] = Button(BUTTON_6_UPPER, BUTTON_6_UPPER, 0, 56);
+  solo_bank[6] = Button(BUTTON_7_UPPER, BUTTON_7_UPPER, 0, 57);
+  solo_bank[7] = Button(BUTTON_8_UPPER, BUTTON_8_UPPER, 0, 58);
 
-  mute_bank[0] = Button(BUTTON_9, 0, 59);
-  mute_bank[1] = Button(BUTTON_10, 0, 60);
-  mute_bank[2] = Button(BUTTON_11, 0, 62);
-  mute_bank[3] = Button(BUTTON_12, 0, 63);
-  mute_bank[4] = Button(BUTTON_13, 0, 64);
-  mute_bank[5] = Button(BUTTON_14, 0, 65);
-  mute_bank[6] = Button(BUTTON_15, 0, 66);
-  mute_bank[7] = Button(BUTTON_16, 0, 67);
+  mute_bank[0] = Button(BUTTON_9_LOWER, BUTTON_9_LOWER, 0, 59);
+  mute_bank[1] = Button(BUTTON_10_LOWER, BUTTON_10_LOWER, 0, 60);
+  mute_bank[2] = Button(BUTTON_11_LOWER, BUTTON_11_LOWER, 0, 62);
+  mute_bank[3] = Button(BUTTON_12_LOWER, BUTTON_12_LOWER, 0, 63);
+  mute_bank[4] = Button(BUTTON_13_LOWER, BUTTON_13_LOWER, 0, 64);
+  mute_bank[5] = Button(BUTTON_14_LOWER, BUTTON_14_LOWER, 0, 65);
+  mute_bank[6] = Button(BUTTON_15_LOWER, BUTTON_15_LOWER, 0, 66);
+  mute_bank[7] = Button(BUTTON_16_LOWER, BUTTON_16_LOWER, 0, 67);
 
   fader_bank[0] = Fader(FADER_1, 0, 41);  
   fader_bank[1] = Fader(FADER_2, 0, 42);
@@ -67,9 +70,27 @@ void setup()
 
 void loop()
 {
+  int bank_1_voltage = analogRead(BUTTON_BANK_1);
+  int bank_2_voltage = analogRead(BUTTON_BANK_2);
+  Serial.println(bank_1_voltage);
+
+  // WORKING:
+  // if (read < 1025 & read > 1022) {
+  //   state = !state;
+  //   Serial.println(state);
+  //   delay(200);
+  // }
+  // WORKING ^^
+  
   for (int i = 0; i < 8; i++) {
-    update_button_voltage(solo_bank[i], BUTTON_BANK_1);
-    update_button_voltage(mute_bank[i], BUTTON_BANK_2);
+    if (bank_1_voltage < solo_bank[i].voltage_high & bank_1_voltage > solo_bank[i].voltage_low) {
+      solo_bank[i].toggle();
+      delay(delay_amount);
+    }
+    if (bank_2_voltage < mute_bank[i].voltage_high & bank_2_voltage > mute_bank[i].voltage_low) {
+      mute_bank[i].toggle();
+      delay(delay_amount);
+    }
   }
 
   update_faders();
@@ -86,24 +107,26 @@ void update_faders() {
   update_fader_voltage(fader_bank[7], FADER_8);
 }
 
-void update_button_voltage(Button button, const uint8_t pin) {
-  int current_voltage = analogRead(pin);
-  if (button.previous_voltage != current_voltage) {
-    switch (button.previous_velocity) {
-      case 0:
-        button.toggle(127);
-        button.previous_velocity = 127;
-        break;
-      case 127:
-        button.toggle(0);
-        button.previous_velocity = 0;
-        break;
-      default:
-        break;
-    }
+void update_button_voltage(Button button, int voltage_in, int delay) {
+  if (voltage_in < button.voltage_high & voltage_in > button.voltage_low) {
+    button.toggle();
   }
+  // if (button.previous_voltage != current_voltage) {
+  //   switch (button.previous_velocity) {
+  //     case 0:
+  //       button.toggle(127);
+  //       button.previous_velocity = 127;
+  //       break;
+  //     case 127:
+  //       button.toggle(0);
+  //       button.previous_velocity = 0;
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }
 
-  button.previous_voltage = current_voltage;
+  // button.previous_voltage = current_voltage;
 }
 
 void update_fader_voltage(Fader fader, const uint8_t pin) {

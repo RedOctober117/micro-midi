@@ -12,7 +12,7 @@ def calculaite_v_bounds_error(v_ins, error):
     v_in_bounds = []
     i = 0
     for voltage in v_ins:
-        v_in_bounds.append((voltage - (v_ins[i] * error), voltage + (v_ins[i] * error)))
+        v_in_bounds.append((int(voltage - (v_ins[i] * error)), int(voltage + (v_ins[i] * error))))
         i += 1
     return v_in_bounds
 
@@ -22,6 +22,15 @@ def write_ranges_error(ranges, path):
         i = 1
         for range in ranges:
             main_file.write(f'#define BUTTON_{i}_LOWER {range[0]}\n#define BUTTON_{i}_UPPER {range[1]}\n#define BUTTON_{i + 8}_LOWER {range[0]}\n#define BUTTON_{i + 8}_UPPER {range[1]}\n')        
+            i += 1
+        main_file.write('#endif')
+        
+def write_ranges_error_tuple(ranges, path):
+    with open(path, 'w') as main_file:
+        main_file.write('#ifndef VINS_H\n#define VINS_H\n')
+        i = 1
+        for range in ranges:
+            main_file.write(f'#define BUTTON_{i}_RANGE std::make_tuple({range[0]},{range[1]})\n#define BUTTON_{i + 8}_RANGE std::make_tuple({range[0]},{range[1]})\n')        
             i += 1
         main_file.write('#endif')
 
@@ -40,7 +49,7 @@ def main():
     for resistance in resistances:
         v_ins.append(round(calcuate_v_in_value(220, resistance)))
 
-    write_ranges_exact(v_ins, 'main/vins.h')
+    write_ranges_error(calculaite_v_bounds_error(v_ins, .01), 'main/vins.hpp')
 
 if __name__ == '__main__':
     main()
