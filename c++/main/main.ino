@@ -130,10 +130,6 @@ void update_button_voltage(Button button, int voltage_in, int delay) {
 }
 
 void update_fader_voltage(Fader fader, const uint8_t pin) {
-  int current_voltage = analogRead(pin);
-  if (fader.previous_voltage != current_voltage) {
-    fader.toggle(current_voltage);
-  }
-
-  fader.previous_voltage = current_voltage;
+  fader.current_voltage = analogRead(pin);
+  fader.toggle();
 }
