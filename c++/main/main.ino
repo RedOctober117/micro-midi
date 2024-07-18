@@ -23,7 +23,9 @@
 Button solo_bank[8];
 Button mute_bank[8];
 Fader fader_bank[8];
-// bool state = false;
+uint8_t fader_pins[8];
+int fader_voltages[8];
+
 unsigned long delay_amount = 200;
 
 void setup()
@@ -46,14 +48,23 @@ void setup()
   mute_bank[6] = Button(BUTTON_15_LOWER, BUTTON_15_LOWER, 0, 66);
   mute_bank[7] = Button(BUTTON_16_LOWER, BUTTON_16_LOWER, 0, 67);
 
-  fader_bank[0] = Fader(FADER_1, 0, 41);  
-  fader_bank[1] = Fader(FADER_2, 0, 42);
-  fader_bank[2] = Fader(FADER_3, 0, 43);
-  fader_bank[3] = Fader(FADER_4, 0, 44);
-  fader_bank[4] = Fader(FADER_5, 0, 45);
-  fader_bank[5] = Fader(FADER_6, 0, 46);
-  fader_bank[6] = Fader(FADER_7, 0, 47);
-  fader_bank[7] = Fader(FADER_8, 0, 48);
+  fader_bank[0] = Fader(0, 41);  
+  fader_bank[1] = Fader(0, 42);
+  fader_bank[2] = Fader(0, 43);
+  fader_bank[3] = Fader(0, 44);
+  fader_bank[4] = Fader(0, 45);
+  fader_bank[5] = Fader(0, 46);
+  fader_bank[6] = Fader(0, 47);
+  fader_bank[7] = Fader(0, 48);
+  
+  fader_pins[0] = FADER_1;  
+  fader_pins[1] = FADER_2;
+  fader_pins[2] = FADER_3;
+  fader_pins[3] = FADER_4;
+  fader_pins[4] = FADER_5;
+  fader_pins[5] = FADER_6;
+  fader_pins[6] = FADER_7;
+  fader_pins[7] = FADER_8;
 
   Serial.begin(9600);
   pinMode(BUTTON_BANK_1, INPUT);
@@ -72,7 +83,10 @@ void loop()
 {
   int bank_1_voltage = analogRead(BUTTON_BANK_1);
   int bank_2_voltage = analogRead(BUTTON_BANK_2);
-  Serial.println(bank_1_voltage);
+  for (int i = 0; i < 8; i++) {
+    fader_voltages[i] = analogRead(fader_pins[i]) / 8;
+  }
+  // int fader_1_voltage = analogRead(fader_pins[0]) / 8;
 
   // WORKING:
   // if (read < 1025 & read > 1022) {
@@ -81,35 +95,31 @@ void loop()
   //   delay(200);
   // }
   // WORKING ^^
-  
+
   for (int i = 0; i < 8; i++) {
-    if (bank_1_voltage < solo_bank[i].voltage_high & bank_1_voltage > solo_bank[i].voltage_low) {
-      solo_bank[i].toggle();
-      delay(delay_amount);
+    update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
+    update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
+    if (fader_bank[i].previous_voltage != fader_voltages[i]) {
+      if (i == 0) {
+        Serial.println("TOGGLING FADER: ");
+        Serial.println(fader_voltages[i]);
+      }
+      fader_bank[i].toggle(fader_voltages[i]);
+      fader_bank[i].set_voltage(fader_voltages[i]);
     }
-    if (bank_2_voltage < mute_bank[i].voltage_high & bank_2_voltage > mute_bank[i].voltage_low) {
-      mute_bank[i].toggle();
-      delay(delay_amount);
-    }
+    // update_fader_voltage(fader_bank[
   }
+  // Serial.println("BUTTON: ");
+  // Serial.println(bank_1_voltage);
 
-  update_faders();
+  // update_faders();
 }
 
-void update_faders() {
-  update_fader_voltage(fader_bank[0], FADER_1);
-  update_fader_voltage(fader_bank[1], FADER_2);
-  update_fader_voltage(fader_bank[2], FADER_3);
-  update_fader_voltage(fader_bank[3], FADER_4);
-  update_fader_voltage(fader_bank[4], FADER_5);
-  update_fader_voltage(fader_bank[5], FADER_6);
-  update_fader_voltage(fader_bank[6], FADER_7);
-  update_fader_voltage(fader_bank[7], FADER_8);
-}
-
-void update_button_voltage(Button button, int voltage_in, int delay) {
+void update_button_voltage(Button button, int voltage_in, int delay_amount) {
   if (voltage_in < button.voltage_high & voltage_in > button.voltage_low) {
+    Serial.println("TOGGLING BUTTON");
     button.toggle();
+    delay(delay_amount);
   }
   // if (button.previous_voltage != current_voltage) {
   //   switch (button.previous_velocity) {
@@ -129,7 +139,15 @@ void update_button_voltage(Button button, int voltage_in, int delay) {
   // button.previous_voltage = current_voltage;
 }
 
-void update_fader_voltage(Fader fader, const uint8_t pin) {
-  fader.current_voltage = analogRead(pin);
-  fader.toggle();
+void update_fader_voltage(Fader fader, int voltage_in) {
+  int current = voltage_in / 8;
+  if (fader.previous_voltage != current) {
+    Serial.println("TOGGLING FADER: ");
+    Serial.println(current);
+    fader.toggle(current);
+    fader.set_voltage(current);
+  }
+  // fader.current_voltage = analogRead(pin) / 8;
+  // fader.toggle();
+  // fader.previous_voltage = fader.current_voltage;
 }

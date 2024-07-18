@@ -5,12 +5,13 @@
 
 class Fader : public Control{
   public:
-    int current_voltage;
+    // int current_voltage;
     int previous_voltage;
     Fader ();
-    Fader (int, byte, byte);
+    Fader (byte, byte);
 
-    void toggle();
+    // void toggle();
+    void set_voltage(int);
 };
 
 
