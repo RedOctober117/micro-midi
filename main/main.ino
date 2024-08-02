@@ -4,7 +4,6 @@
 #include "midi_controls.hpp"
 #include "button.hpp"
 #include "fader.hpp"
-// #include <tuple>
 
 #define CHANNEL 0
 
@@ -92,12 +91,10 @@ void loop()
   for (int i = 0; i < 8; i++) {
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
-    if (i == 0) {
-      update_fader_voltage(fader_bank[i], fader_voltages[i]); 
-    }
+    update_fader_voltage(fader_bank[i], fader_voltages[i]); 
+    
   }
 }
-
 
 // Without the `&`, a copy of the button or fader is passed, and so changes are
 // lost each loop. With the `&`, the object itself is passed.
