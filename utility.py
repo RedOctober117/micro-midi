@@ -24,15 +24,34 @@ def write_ranges_error(ranges, path):
             main_file.write(f'#define BUTTON_{i}_LOWER {range[0]}\n#define BUTTON_{i}_UPPER {range[1]}\n#define BUTTON_{i + 8}_LOWER {range[0]}\n#define BUTTON_{i + 8}_UPPER {range[1]}\n')        
             i += 1
         main_file.write('#endif')
+    
+def calculate_parallel_voltage(voltages):
+    sum = 0
+    for voltage in voltages:
+        sum += voltage
+    return (1 / (1 / sum))
         
-def write_ranges_error_tuple(ranges, path):
-    with open(path, 'w') as main_file:
-        main_file.write('#ifndef VINS_H\n#define VINS_H\n')
-        i = 1
-        for range in ranges:
-            main_file.write(f'#define BUTTON_{i}_RANGE std::make_tuple({range[0]},{range[1]})\n#define BUTTON_{i + 8}_RANGE std::make_tuple({range[0]},{range[1]})\n')        
-            i += 1
-        main_file.write('#endif')
+def calculate_macros(v_ins, error=None):
+    macros = dict()
+    for base_voltage_index in range(len(v_ins)):
+        macros[base_voltage_index] = list()
+        for macro_voltage_index in range(len(v_ins)):
+            if base_voltage_index != macro_voltage_index:
+                macros[base_voltage_index].append(int(calcuate_v_in_value(220, calculate_parallel_voltage([v_ins[base_voltage_index], v_ins[macro_voltage_index]]))))
+    
+    return macros
+
+    # for v_in in v_ins:
+        
+            
+# def write_ranges_error_tuple(ranges, path):
+#     with open(path, 'w') as main_file:
+#         main_file.write('#ifndef VINS_H\n#define VINS_H\n')
+#         i = 1
+#         for range in ranges:
+#             main_file.write(f'#define BUTTON_{i}_RANGE std::make_tuple({range[0]},{range[1]})\n#define BUTTON_{i + 8}_RANGE std::make_tuple({range[0]},{range[1]})\n')        
+#             i += 1
+#         main_file.write('#endif')
 
 def write_ranges_exact(ranges, path):
     with open(path, 'w') as main_file:
@@ -48,8 +67,10 @@ def main():
     v_ins = []
     for resistance in resistances:
         v_ins.append(round(calcuate_v_in_value(220, resistance)))
-
-    write_ranges_error(calculaite_v_bounds_error(v_ins, .01), 'main/vins.hpp')
+    macros = calculate_macros(resistances, )
+    for key, item in macros.items():
+        print(f'Button {key + 1}: {item}')
+    # write_ranges_error(calculaite_v_bounds_error(v_ins, .01), 'main/vins.hpp')
 
 if __name__ == '__main__':
     main()
