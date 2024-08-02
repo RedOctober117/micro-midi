@@ -2,10 +2,10 @@
 
 Control::Control() { }
 
-Control::Control(int voltage, byte channel, byte pitch) {
-  this->target_voltage = voltage;
+Control::Control(byte channel, byte pitch, uint8_t pin) {
   this->channel = channel;
   this->pitch = pitch;
+  this->pin = pin;
 }
 
 void Control::toggle(byte velocity) {

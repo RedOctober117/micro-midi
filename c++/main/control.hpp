@@ -6,13 +6,13 @@
 
 class Control {
   public:
-    int target_voltage;
     int previous_voltage;
     byte channel;
     byte pitch;
+    uint8_t pin;
 
   Control ();
-  Control (int, byte, byte);
+  Control (byte, byte, uint8_t);
 
   void toggle(byte);
   void momentary(byte);

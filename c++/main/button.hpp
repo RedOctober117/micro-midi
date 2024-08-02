@@ -12,7 +12,7 @@ class Button : public Control {
     Button ();
     Button (int, int, byte, byte);
 
-    void toggle();
+    void toggle(int, int);
 };
 
 #endif

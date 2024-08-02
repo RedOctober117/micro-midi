@@ -86,68 +86,23 @@ void loop()
   for (int i = 0; i < 8; i++) {
     fader_voltages[i] = analogRead(fader_pins[i]) / 8;
   }
-  // int fader_1_voltage = analogRead(fader_pins[0]) / 8;
-
-  // WORKING:
-  // if (read < 1025 & read > 1022) {
-  //   state = !state;
-  //   Serial.println(state);
-  //   delay(200);
-  // }
-  // WORKING ^^
 
   for (int i = 0; i < 8; i++) {
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
-    if (fader_bank[i].previous_voltage != fader_voltages[i]) {
-      if (i == 0) {
-        Serial.println("TOGGLING FADER: ");
-        Serial.println(fader_voltages[i]);
-      }
-      fader_bank[i].toggle(fader_voltages[i]);
-      fader_bank[i].set_voltage(fader_voltages[i]);
+    if (i == 0) {
+      update_fader_voltage(fader_bank[i], fader_voltages[i]); 
     }
-    // update_fader_voltage(fader_bank[
   }
-  // Serial.println("BUTTON: ");
-  // Serial.println(bank_1_voltage);
-
-  // update_faders();
 }
 
-void update_button_voltage(Button button, int voltage_in, int delay_amount) {
-  if (voltage_in < button.voltage_high & voltage_in > button.voltage_low) {
-    Serial.println("TOGGLING BUTTON");
-    button.toggle();
-    delay(delay_amount);
-  }
-  // if (button.previous_voltage != current_voltage) {
-  //   switch (button.previous_velocity) {
-  //     case 0:
-  //       button.toggle(127);
-  //       button.previous_velocity = 127;
-  //       break;
-  //     case 127:
-  //       button.toggle(0);
-  //       button.previous_velocity = 0;
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }
 
-  // button.previous_voltage = current_voltage;
+// Without the `&`, a copy of the button or fader is passed, and so changes are
+// lost each loop. With the `&`, the object itself is passed.
+void update_button_voltage(Button& button, int voltage_in, int delay_amount) {
+  button.toggle(voltage_in, delay_amount);
 }
 
-void update_fader_voltage(Fader fader, int voltage_in) {
-  int current = voltage_in / 8;
-  if (fader.previous_voltage != current) {
-    Serial.println("TOGGLING FADER: ");
-    Serial.println(current);
-    fader.toggle(current);
-    fader.set_voltage(current);
-  }
-  // fader.current_voltage = analogRead(pin) / 8;
-  // fader.toggle();
-  // fader.previous_voltage = fader.current_voltage;
+void update_fader_voltage(Fader& fader, int voltage_in) {
+  fader.toggle(voltage_in);
 }
