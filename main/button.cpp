@@ -12,7 +12,8 @@ Button::Button(int voltage_low, int voltage_high, byte channel, byte pitch) {
 
 void Button::toggle(int voltage, int delay_amount) {
   if ((voltage > this->voltage_low) & (voltage < this->voltage_high)) {
-    Serial.println("Button pressed");
+    Serial.print("Button pressed with voltage ");
+    Serial.println(voltage);
     switch (previous_velocity) {
       case 0:
         this->previous_velocity = 127;

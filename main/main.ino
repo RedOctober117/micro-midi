@@ -89,10 +89,11 @@ void loop()
   }
 
   for (int i = 0; i < 8; i++) {
+    Serial.print("Checking fader and button ");
+    Serial.println(i + 1);
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
-    update_fader_voltage(fader_bank[i], fader_voltages[i]); 
-    
+    update_fader_voltage(fader_bank[i], fader_voltages[i]);     
   }
 }
 
