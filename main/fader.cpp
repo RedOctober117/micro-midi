@@ -12,7 +12,7 @@ void Fader::toggle(int voltage) {
   // Serial.println(getVoltage());
   if (voltage != getVoltage()) {
     setVoltage(voltage);
-    toggle(getVoltage());
+    Control::toggle(getVoltage());
     Serial.print("TOGGLED FADER: ");
     Serial.println(getVoltage());
   }
