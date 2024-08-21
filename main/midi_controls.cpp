@@ -20,17 +20,17 @@ void latch_command(byte channel, byte pitch, byte velocity)
   MidiUSB.flush();
 }
 
-void noteOn(byte channel, byte pitch, byte velocity)
-{
-  midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
-  MidiUSB.sendMIDI(noteOn);
-}
+// void noteOn(byte channel, byte pitch, byte velocity)
+// {
+//   midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
+//   MidiUSB.sendMIDI(noteOn);
+// }
 
-void noteOff(byte channel, byte pitch, byte velocity)
-{
-  midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
-  MidiUSB.sendMIDI(noteOff);
-}
+// void noteOff(byte channel, byte pitch, byte velocity)
+// {
+//   midiEventPacket_t noteOff = {0x08, 0x80 | channel, pitch, velocity};
+//   MidiUSB.sendMIDI(noteOff);
+// }
 
 // int calc_midi(int voltage_in) {
 //   return (voltage_in * 10 / 127);
