@@ -11,12 +11,8 @@ class Button : public Control {
 
     /// The lower bound voltage for the button.
     int voltage_low;
-<<<<<<< Updated upstream
-    boolean latched;
-=======
-    
+
     /// The previous velocity the button sent.
->>>>>>> Stashed changes
     int previous_velocity;
 
     /// Default button constructor.
