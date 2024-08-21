@@ -8,6 +8,7 @@ void momentary_command(byte channel, byte pitch, byte duration)
   controlChange(channel, pitch, 0);
   MidiUSB.flush();
 }
+
 void controlChange(byte channel, byte control, byte value)
 {
   midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
