@@ -1,3 +1,9 @@
+Monitoring MIDI input on Ubuntu
+```
+aseqdump -l
+aseqdump -p <port:port>
+```
+
 # Button
 
 For the purposes of this project, buttons have a single function: send an on or off signal. This iteration does not know the state of the program, and so each button is set to an `off` state. The first press of a button will send the on signal. 
