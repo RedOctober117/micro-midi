@@ -47,22 +47,22 @@ void setup()
   // Construct all Buttons and Faders inside their respective arrays. The 
   // 'pitch' is the command sent to the receiver, and is arbitrarily chosen.
   solo_bank[0] = Button(BUTTON_1_LOWER, BUTTON_1_UPPER, CHANNEL, 51);
-  solo_bank[1] = Button(BUTTON_2_UPPER, BUTTON_2_UPPER, CHANNEL, 52);
-  solo_bank[2] = Button(BUTTON_3_UPPER, BUTTON_3_UPPER, CHANNEL, 53);
-  solo_bank[3] = Button(BUTTON_4_UPPER, BUTTON_4_UPPER, CHANNEL, 54);
-  solo_bank[4] = Button(BUTTON_5_UPPER, BUTTON_5_UPPER, CHANNEL, 55);
-  solo_bank[5] = Button(BUTTON_6_UPPER, BUTTON_6_UPPER, CHANNEL, 56);
-  solo_bank[6] = Button(BUTTON_7_UPPER, BUTTON_7_UPPER, CHANNEL, 57);
-  solo_bank[7] = Button(BUTTON_8_UPPER, BUTTON_8_UPPER, CHANNEL, 58);
+  solo_bank[1] = Button(BUTTON_2_LOWER, BUTTON_2_UPPER, CHANNEL, 52);
+  solo_bank[2] = Button(BUTTON_3_LOWER, BUTTON_3_UPPER, CHANNEL, 53);
+  solo_bank[3] = Button(BUTTON_4_LOWER, BUTTON_4_UPPER, CHANNEL, 54);
+  solo_bank[4] = Button(BUTTON_5_LOWER, BUTTON_5_UPPER, CHANNEL, 55);
+  solo_bank[5] = Button(BUTTON_6_LOWER, BUTTON_6_UPPER, CHANNEL, 56);
+  solo_bank[6] = Button(BUTTON_7_LOWER, BUTTON_7_UPPER, CHANNEL, 57);
+  solo_bank[7] = Button(BUTTON_8_LOWER, BUTTON_8_UPPER, CHANNEL, 58);
 
-  mute_bank[0] = Button(BUTTON_9_LOWER, BUTTON_9_LOWER, CHANNEL, 59);
-  mute_bank[1] = Button(BUTTON_10_LOWER, BUTTON_10_LOWER, CHANNEL, 60);
-  mute_bank[2] = Button(BUTTON_11_LOWER, BUTTON_11_LOWER, CHANNEL, 62);
-  mute_bank[3] = Button(BUTTON_12_LOWER, BUTTON_12_LOWER, CHANNEL, 63);
-  mute_bank[4] = Button(BUTTON_13_LOWER, BUTTON_13_LOWER, CHANNEL, 64);
-  mute_bank[5] = Button(BUTTON_14_LOWER, BUTTON_14_LOWER, CHANNEL, 65);
-  mute_bank[6] = Button(BUTTON_15_LOWER, BUTTON_15_LOWER, CHANNEL, 66);
-  mute_bank[7] = Button(BUTTON_16_LOWER, BUTTON_16_LOWER, CHANNEL, 67);
+  mute_bank[0] = Button(BUTTON_9_LOWER, BUTTON_9_UPPER, CHANNEL, 59);
+  mute_bank[1] = Button(BUTTON_10_LOWER, BUTTON_10_UPPER, CHANNEL, 60);
+  mute_bank[2] = Button(BUTTON_11_LOWER, BUTTON_11_UPPER, CHANNEL, 62);
+  mute_bank[3] = Button(BUTTON_12_LOWER, BUTTON_12_UPPER, CHANNEL, 63);
+  mute_bank[4] = Button(BUTTON_13_LOWER, BUTTON_13_UPPER, CHANNEL, 64);
+  mute_bank[5] = Button(BUTTON_14_LOWER, BUTTON_14_UPPER, CHANNEL, 65);
+  mute_bank[6] = Button(BUTTON_15_LOWER, BUTTON_15_UPPER, CHANNEL, 66);
+  mute_bank[7] = Button(BUTTON_16_LOWER, BUTTON_16_UPPER, CHANNEL, 67);
 
   fader_bank[0] = Fader(CHANNEL, 41);  
   fader_bank[1] = Fader(CHANNEL, 42);
@@ -109,8 +109,6 @@ void loop()
 
   // Run the update functions for every Button and Fader.
   for (int i = 0; i < 8; i++) {
-    Serial.print("Checking fader and button ");
-    Serial.println(i + 1);
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
     update_fader_voltage(fader_bank[i], fader_voltages[i]);     
