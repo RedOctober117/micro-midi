@@ -115,7 +115,7 @@ void loop()
       update_fader_voltage(fader_bank[i], fader_voltages[i]);     
     }
   }
-}
+} 
 
 // Without the `&`, a copy of the button or fader is passed, and so changes are
 // lost each loop. With the `&`, the object itself is passed.
