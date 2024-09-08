@@ -67,10 +67,10 @@ def main():
     v_ins = []
     for resistance in resistances:
         v_ins.append(round(calcuate_v_in_value(220, resistance)))
-    macros = calculate_macros(resistances, )
+    macros = calculate_macros(resistances, .05)
     for key, item in macros.items():
         print(f'Button {key + 1}: {item}')
-    # write_ranges_error(calculaite_v_bounds_error(v_ins, .01), 'main/vins.hpp')
+    write_ranges_error(calculaite_v_bounds_error(v_ins, .05), 'main/vins.hpp')
 
 if __name__ == '__main__':
     main()

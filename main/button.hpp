@@ -15,6 +15,8 @@ class Button : public Control {
     /// The previous velocity the button sent.
     int previous_velocity;
 
+    boolean pressed;
+
     /// Default button constructor.
     Button ();
     
@@ -27,8 +29,8 @@ class Button : public Control {
 
     /// Toggles the button using super::toggle(), if conditions are met.
     /// @param  voltage Integer voltage read by the associated pin. 
-    /// @param delay_amount Integer time in ms to wait before allowing another update.
-    void toggle(int, int);
+    // /// @param delay_amount Integer time in ms to wait before allowing another update.
+    void toggle(int);
 };
 
 #endif

@@ -9,11 +9,20 @@ Fader::Fader(byte channel, byte pitch) {
 }
 
 void Fader::toggle(int voltage) {
-  if (voltage != getVoltage()) {
-    setVoltage(voltage);
-    Control::toggle(getVoltage());
-    Serial.print("TOGGLED FADER: ");
-    Serial.println(getVoltage());
+  if (getVoltage() == 0 && voltage < 19) {
+    return;
+  }
+
+  if (voltage > getVoltage() + 1 || voltage < getVoltage() - 1) {
+    if (voltage < 19) {
+      setVoltage(0);
+      Control::toggle(getVoltage());
+    } else {
+      setVoltage(voltage);
+      Control::toggle(getVoltage());
+      Serial.print("TOGGLED FADER: ");
+      Serial.println(getVoltage());
+    }
   }
 }
 

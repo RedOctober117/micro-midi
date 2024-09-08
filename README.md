@@ -26,3 +26,12 @@ The only state relevant to a fader is its last voltage. Every loop, if the volta
 ## Effect
 
 When a fader is moved, its internal voltage state is updated, and a signal is sent with that new state.
+
+# Demo
+
+Ableton sessions
+Stream deck function
+
+https://deskthority.net/wiki/Rollover,_blocking_and_ghosting
+https://www.sparkfun.com/products/13773
+

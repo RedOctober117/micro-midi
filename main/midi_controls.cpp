@@ -1,23 +1,23 @@
 #include "midi_controls.hpp"
 
-void momentary_command(byte channel, byte pitch, byte duration)
+void momentary_command(byte channel, byte controller, byte duration)
 {
-  controlChange(channel, pitch, 127);
+  controlChange(channel, controller, 127);
   MidiUSB.flush();
   delay(duration);
-  controlChange(channel, pitch, 0);
+  controlChange(channel, controller, 0);
   MidiUSB.flush();
 }
 
-void controlChange(byte channel, byte control, byte value)
+void controlChange(byte channel, byte controller, byte value)
 {
-  midiEventPacket_t event = {0x0B, 0xB0 | channel, control, value};
+  midiEventPacket_t event = {0x0B, 0xB0 | channel, controller, value};
   MidiUSB.sendMIDI(event);
 }
 
-void latch_command(byte channel, byte pitch, byte velocity)
+void latch_command(byte channel, byte controller, byte value)
 {
-  controlChange(channel, pitch, velocity);
+  controlChange(channel, controller, value);
   MidiUSB.flush();
 }
 

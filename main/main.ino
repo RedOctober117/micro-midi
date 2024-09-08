@@ -111,7 +111,9 @@ void loop()
   for (int i = 0; i < 8; i++) {
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
-    update_fader_voltage(fader_bank[i], fader_voltages[i]);     
+    if (i != 7) {
+      update_fader_voltage(fader_bank[i], fader_voltages[i]);     
+    }
   }
 }
 
@@ -124,7 +126,8 @@ void loop()
  * @param delay_amount The time in ms to delay after updating the pin.
  */
 void update_button_voltage(Button& button, int voltage_in, int delay_amount) {
-  button.toggle(voltage_in, delay_amount);
+  button.toggle(voltage_in);
+  // delay(delay_amount);
 }
 
 /**
