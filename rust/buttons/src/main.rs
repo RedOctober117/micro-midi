@@ -1,14 +1,30 @@
 #![no_std]
 #![no_main]
 
+use arduino_hal::pac::USB_DEVICE;
+use arduino_hal::prelude::_embedded_hal_serial_Read;
+use arduino_hal::prelude::_unwrap_infallible_UnwrapInfallible;
 use heapless::Vec;
 use panic_halt as _;
+use usb_device::bus::UsbBus;
+use usb_device::bus::UsbBusAllocator;
+use usb_device::device::UsbDeviceBuilder;
+use usb_device::device::UsbVidPid;
+use usbd_serial::*;
+// use serialport;
 
 #[arduino_hal::entry]
 fn main() -> ! {
     let dp = arduino_hal::Peripherals::take().unwrap();
     let pins = arduino_hal::pins!(dp);
     // if you need adc, https://github.com/Rahix/avr-hal/blob/main/examples/arduino-leonardo/src/bin/leonardo-adc.rs
+    let usb_bus = UsbBusAllocator::new(dp.USB_DEVICE.into());
+    let mut serial = SerialPort::new(&usb_bus);
+
+    let mut usb_dev = UsbDeviceBuilder::new(&usb_bus, UsbVidPid(0x16c0, 0x27dd))
+        .product("Serial port")
+        .device_class(USB_CLASS_CDC)
+        .build();
 
     let num_rows: u8 = 2;
     let num_cols: u8 = 2;
@@ -37,6 +53,7 @@ fn main() -> ! {
     let _ = leds.push(pins.d7.into_output().downgrade());
 
     loop {
+        let _ = nb::block!(serial.read()).unwrap_infallible();
         // set all leds to low. this effect is so fast to the human eye that
         // nothing visibily changes even if a button is still depressed.
         for led in &mut leds {
@@ -63,5 +80,6 @@ fn main() -> ! {
         if current_row >= num_rows {
             current_row = 0;
         }
+        ufmt::uwriteln!(&mut serial, "test").unwrap_infallible();
     }
 }
