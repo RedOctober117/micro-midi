@@ -9,7 +9,6 @@
 // eventually be a macro or something to change this on the fly.
 #define CHANNEL 0
 
-
 // Both button banks function identically, but are labeled as 'solo' and 'mute'
 // to keep track of which pin takes what bank on the physical board.
 
@@ -44,7 +43,7 @@ unsigned long delay_amount = 200;
 
 void setup()
 {
-  // Construct all Buttons and Faders inside their respective arrays. The 
+  // Construct all Buttons and Faders inside their respective arrays. The
   // 'pitch' is the command sent to the receiver, and is arbitrarily chosen.
   solo_bank[0] = Button(BUTTON_1_LOWER, BUTTON_1_UPPER, CHANNEL, 51);
   solo_bank[1] = Button(BUTTON_2_LOWER, BUTTON_2_UPPER, CHANNEL, 52);
@@ -64,7 +63,7 @@ void setup()
   mute_bank[6] = Button(BUTTON_15_LOWER, BUTTON_15_UPPER, CHANNEL, 66);
   mute_bank[7] = Button(BUTTON_16_LOWER, BUTTON_16_UPPER, CHANNEL, 67);
 
-  fader_bank[0] = Fader(CHANNEL, 41);  
+  fader_bank[0] = Fader(CHANNEL, 41);
   fader_bank[1] = Fader(CHANNEL, 42);
   fader_bank[2] = Fader(CHANNEL, 43);
   fader_bank[3] = Fader(CHANNEL, 44);
@@ -72,8 +71,8 @@ void setup()
   fader_bank[5] = Fader(CHANNEL, 46);
   fader_bank[6] = Fader(CHANNEL, 47);
   fader_bank[7] = Fader(CHANNEL, 48);
-  
-  fader_pins[0] = FADER_1;  
+
+  fader_pins[0] = FADER_1;
   fader_pins[1] = FADER_2;
   fader_pins[2] = FADER_3;
   fader_pins[3] = FADER_4;
@@ -82,7 +81,7 @@ void setup()
   fader_pins[6] = FADER_7;
   fader_pins[7] = FADER_8;
 
-  // Start the serial interface for debugging and set all pins to INPUT, using 
+  // Start the serial interface for debugging and set all pins to INPUT, using
   // 0 as v_ref.
   Serial.begin(9600);
   pinMode(BUTTON_BANK_1, INPUT);
@@ -103,19 +102,22 @@ void loop()
   // truncated by 3 bits to adhere to the 0-127 range of MIDI controls.
   int bank_1_voltage = analogRead(BUTTON_BANK_1);
   int bank_2_voltage = analogRead(BUTTON_BANK_2);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++)
+  {
     fader_voltages[i] = analogRead(fader_pins[i]) / 8;
   }
 
   // Run the update functions for every Button and Fader.
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 8; i++)
+  {
     update_button_voltage(solo_bank[i], bank_1_voltage, delay_amount);
     update_button_voltage(mute_bank[i], bank_2_voltage, delay_amount);
-    if (i != 7) {
-      update_fader_voltage(fader_bank[i], fader_voltages[i]);     
+    if (i != 7)
+    {
+      update_fader_voltage(fader_bank[i], fader_voltages[i]);
     }
   }
-} 
+}
 
 // Without the `&`, a copy of the button or fader is passed, and so changes are
 // lost each loop. With the `&`, the object itself is passed.
@@ -125,7 +127,8 @@ void loop()
  * @param voltage_in The voltage read by the associated pin.
  * @param delay_amount The time in ms to delay after updating the pin.
  */
-void update_button_voltage(Button& button, int voltage_in, int delay_amount) {
+void update_button_voltage(Button &button, int voltage_in, int delay_amount)
+{
   button.toggle(voltage_in);
   // delay(delay_amount);
 }
@@ -135,6 +138,7 @@ void update_button_voltage(Button& button, int voltage_in, int delay_amount) {
  * @param fader The Fader to be updated.
  * @param voltage_in The voltage read by the associated pin.
  */
-void update_fader_voltage(Fader& fader, int voltage_in) {
+void update_fader_voltage(Fader &fader, int voltage_in)
+{
   fader.toggle(voltage_in);
 }
