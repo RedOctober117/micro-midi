@@ -25,10 +25,10 @@ void controlChange(byte channel, byte controller, byte value);
 /// @param velocity Byte velocity to be sent.
 void latch_command(byte channel, byte pitch, byte velocity);
 
-// /// 
-// /// @param channel 
-// /// @param pitch 
-// /// @param velocity 
+// ///
+// /// @param channel
+// /// @param pitch
+// /// @param velocity
 // void noteOn(byte channel, byte pitch, byte velocity);
 
 // void noteOff(byte channel, byte pitch, byte velocity);

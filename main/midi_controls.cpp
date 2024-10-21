@@ -38,4 +38,3 @@ void latch_command(byte channel, byte controller, byte value)
 // }
 // this could completely remove the need for OOP. just calc the midi value on
 // the fly instead of associating a value with each button
-

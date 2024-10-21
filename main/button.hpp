@@ -4,33 +4,23 @@
 #include "control.hpp"
 
 /// Button class, derived from Control.
-class Button : public Control {
-  public:
-    /// The top bound voltage for the button.
-    int voltage_high;
+class Button : public Control
+{
+public:
+  /// The previous velocity the button sent.
+  uint8_t previous_velocity;
 
-    /// The lower bound voltage for the button.
-    int voltage_low;
+  /// Default button constructor.
+  Button();
 
-    /// The previous velocity the button sent.
-    int previous_velocity;
+  /// Overloaded Button constructor, receiving the voltage bounds, channel, and pitch.
 
-    boolean pressed;
+  /// @param  channel Byte channel on which to send commands.
+  /// @param  pitch Byte pitch, or velocity, that defines the MIDI command sent.
+  Button(byte, byte);
 
-    /// Default button constructor.
-    Button ();
-    
-    /// Overloaded Button constructor, receiving the voltage bounds, channel, and pitch.
-    /// @param  voltage_low Integer lower bound voltage.
-    /// @param  voltage_high Integer upper bound voltage.
-    /// @param  channel Byte channel on which to send commands.
-    /// @param  pitch Byte pitch, or velocity, that defines the MIDI command sent.
-    Button (int, int, byte, byte);
-
-    /// Toggles the button using super::toggle(), if conditions are met.
-    /// @param  voltage Integer voltage read by the associated pin. 
-    // /// @param delay_amount Integer time in ms to wait before allowing another update.
-    void toggle(int);
+  /// Toggles the button using super::toggle(), if conditions are met.
+  void toggle();
 };
 
 #endif
