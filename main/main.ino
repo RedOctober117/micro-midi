@@ -116,52 +116,52 @@ void setup()
     pinMode(button_pin_cols[i], INPUT_PULLUP);
   }
 
-  // fader_bank[0] = Fader(CHANNEL, 41);
-  // fader_bank[1] = Fader(CHANNEL, 42);
-  // fader_bank[2] = Fader(CHANNEL, 43);
-  // fader_bank[3] = Fader(CHANNEL, 44);
-  // fader_bank[4] = Fader(CHANNEL, 45);
-  // fader_bank[5] = Fader(CHANNEL, 46);
-  // fader_bank[6] = Fader(CHANNEL, 47);
-  // fader_bank[7] = Fader(CHANNEL, 48);
+  fader_bank[0] = Fader(CHANNEL, 41);
+  fader_bank[1] = Fader(CHANNEL, 42);
+  fader_bank[2] = Fader(CHANNEL, 43);
+  fader_bank[3] = Fader(CHANNEL, 44);
+  fader_bank[4] = Fader(CHANNEL, 45);
+  fader_bank[5] = Fader(CHANNEL, 46);
+  fader_bank[6] = Fader(CHANNEL, 47);
+  fader_bank[7] = Fader(CHANNEL, 48);
 
-  // fader_pins[0] = FADER_1;
-  // fader_pins[1] = FADER_2;
-  // fader_pins[2] = FADER_3;
-  // fader_pins[3] = FADER_4;
-  // fader_pins[4] = FADER_5;
-  // fader_pins[5] = FADER_6;
-  // fader_pins[6] = FADER_7;
-  // fader_pins[7] = FADER_8;
+  fader_pins[0] = FADER_1;
+  fader_pins[1] = FADER_2;
+  fader_pins[2] = FADER_3;
+  fader_pins[3] = FADER_4;
+  fader_pins[4] = FADER_5;
+  fader_pins[5] = FADER_6;
+  fader_pins[6] = FADER_7;
+  fader_pins[7] = FADER_8;
 
   // Start the serial interface for debugging and set all pins to INPUT, using
   // 0 as v_ref.
   // Serial.begin(9600);
 
-  // pinMode(FADER_1, INPUT);
-  // pinMode(FADER_2, INPUT);
-  // pinMode(FADER_3, INPUT);
-  // pinMode(FADER_4, INPUT);
-  // pinMode(FADER_5, INPUT);
-  // pinMode(FADER_6, INPUT);
-  // pinMode(FADER_7, INPUT);
-  // pinMode(FADER_8, INPUT);
+  pinMode(FADER_1, INPUT);
+  pinMode(FADER_2, INPUT);
+  pinMode(FADER_3, INPUT);
+  pinMode(FADER_4, INPUT);
+  pinMode(FADER_5, INPUT);
+  pinMode(FADER_6, INPUT);
+  pinMode(FADER_7, INPUT);
+  pinMode(FADER_8, INPUT);
 }
 
 void loop()
 {
   // Read the voltages on every pin sequentially, per tick. Fader pins are
   // truncated by 3 bits to adhere to the 0-127 range of MIDI controls.
-  // for (int i = 0; i < 8; i++)
-  // {
-  //   fader_voltages[i] = analogRead(fader_pins[i]) / 8;
-  // }
+  for (int i = 0; i < 8; i++)
+  {
+    fader_voltages[i] = analogRead(fader_pins[i]) / 8;
+  }
 
-  // // Run the update functions for every Button and Fader.
-  // for (int i = 0; i < 8; i++)
-  // {
-  //   update_fader_voltage(fader_bank[i], fader_voltages[i]);
-  // }
+  // Run the update functions for every Button and Fader.
+  for (int i = 0; i < 8; i++)
+  {
+    update_fader_voltage(fader_bank[i], fader_voltages[i]);
+  }
 
   scan_buttons();
 }
@@ -193,7 +193,6 @@ void scan_buttons()
 
   for (int current_col = 0; current_col < 4; current_col++)
   {
-    // uint8_t *debounce_element = &debounce[current_row][current_col];
     if (digitalRead(button_pin_cols[current_col]) == LOW && debounce[current_row][current_col] == MAX_DEBOUNCE)
     {
       debounce[current_row][current_col] = MAX_DEBOUNCE;
@@ -203,10 +202,6 @@ void scan_buttons()
       debounce[current_row][current_col]++;
       if (debounce[current_row][current_col] == MAX_DEBOUNCE)
       {
-        Serial.print("Toggling button ");
-        Serial.print(current_row + 1);
-        Serial.print("x");
-        Serial.println(current_col + 1);
         buttons[current_row][current_col].toggle();
       }
     }
