@@ -36,6 +36,11 @@
 
 #define MAX_DEBOUNCE 3
 
+// https://cdn-shop.adafruit.com/datasheets/sn74hc595.pdf
+#define DATA_PIN 11 // SER
+#define CLOCK_PIN 0 // SRCLK
+#define LATCH_PIN 1 // RCLK
+
 // Initialize the arrays to store the Button and Fader objects, as well as the
 // Fader pins and voltages.
 Button buttons[4][4];
@@ -43,9 +48,13 @@ uint8_t button_pin_rows[4];
 uint8_t button_pin_cols[4];
 uint8_t debounce[4][4];
 
+uint16_t leds[4][4];
+
 Fader fader_bank[8];
 uint8_t fader_pins[8];
 int fader_voltages[8];
+
+uint16_t current_depressed = 0x0000;
 
 // My test board requires a delay to prevent the button from actuating twice
 // per press. This will change depending on the quality of the final product.
@@ -69,7 +78,7 @@ void setup()
   // Construct all Buttons and Faders inside their respective arrays. The
   // 'pitch' is the command sent to the receiver, and is arbitrarily chosen.
 
-  // solo
+  // solo button
   buttons[0][0] = Button(CHANNEL, 51);
   buttons[0][1] = Button(CHANNEL, 52);
   buttons[0][2] = Button(CHANNEL, 53);
@@ -79,7 +88,7 @@ void setup()
   buttons[2][2] = Button(CHANNEL, 57);
   buttons[2][3] = Button(CHANNEL, 58);
 
-  // mute
+  // mute button
   buttons[1][0] = Button(CHANNEL, 59);
   buttons[1][1] = Button(CHANNEL, 60);
   buttons[1][2] = Button(CHANNEL, 62);
@@ -88,6 +97,30 @@ void setup()
   buttons[3][1] = Button(CHANNEL, 65);
   buttons[3][2] = Button(CHANNEL, 66);
   buttons[3][3] = Button(CHANNEL, 67);
+
+  // solo led
+  leds[1][0] = 0x0100; // 0b 0000 0001  0000 0000
+  leds[1][1] = 0x0200; // 0b 0000 0010  0000 0000
+  leds[1][2] = 0x0400; // 0b 0000 0100  0000 0000
+  leds[1][3] = 0x0800; // 0b 0000 1000  0000 0000
+  leds[3][0] = 0x1000; // 0b 0001 0000  0000 0000
+  leds[3][1] = 0x2000; // 0b 0010 0000  0000 0000
+  leds[3][2] = 0x4000; // 0b 0100 0000  0000 0000
+  leds[3][3] = 0x8000; // 0b 1000 0000  0000 0000
+
+  // mute led
+  leds[0][0] = 0x0001; // 0b 0000 0000  0000 0001
+  leds[0][1] = 0x0002; // 0b 0000 0000  0000 0010
+  leds[0][2] = 0x0004; // 0b 0000 0000  0000 0100
+  leds[0][3] = 0x0008; // 0b 0000 0000  0000 1000
+  leds[2][0] = 0x0010; // 0b 0000 0000  0001 0000
+  leds[2][1] = 0x0020; // 0b 0000 0000  0010 0000
+  leds[2][2] = 0x0040; // 0b 0000 0000  0100 0000
+  leds[2][3] = 0x0080; // 0b 0000 0000  1000 0000
+
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(DATA_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
 
   button_pin_rows[0] = BUTTON_ROW_0;
   button_pin_rows[1] = BUTTON_ROW_1;
@@ -136,6 +169,7 @@ void setup()
 
   // Start the serial interface for debugging and set all pins to INPUT, using
   // 0 as v_ref.
+  // BREAKS DIGITAL BUTTONS! DO NOT USE IN PROD!
   // Serial.begin(9600);
 
   pinMode(FADER_1, INPUT);
@@ -146,6 +180,8 @@ void setup()
   pinMode(FADER_6, INPUT);
   pinMode(FADER_7, INPUT);
   pinMode(FADER_8, INPUT);
+
+  clear_buttons();
 }
 
 void loop()
@@ -203,6 +239,21 @@ void scan_buttons()
       if (debounce[current_row][current_col] == MAX_DEBOUNCE)
       {
         buttons[current_row][current_col].toggle();
+        current_depressed = current_depressed | leds[current_row][current_col];
+        digitalWrite(LATCH_PIN, 0);
+        shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
+        digitalWrite(LATCH_PIN, 1);
+        // if ((current_row == 0) || (current_row == 2))
+        // {
+        //   // write_register(leds[current_row][current_col], 0x00);
+        // }
+        // else
+        // {
+        //   digitalWrite(LATCH_PIN, 0);
+        //   shift_out(DATA_PIN, CLOCK_PIN, leds[current_row][current_col]);
+        //   digitalWrite(LATCH_PIN, 1);
+        //   // write_register(0x00, leds[current_row][current_col]);
+        // }
       }
     }
     else
@@ -210,6 +261,10 @@ void scan_buttons()
       if (debounce[current_row][current_col] > 0)
       {
         debounce[current_row][current_col]--;
+        current_depressed = current_depressed ^ leds[current_row][current_col];
+        digitalWrite(LATCH_PIN, 0);
+        shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
+        digitalWrite(LATCH_PIN, 1);
       }
     }
   }
@@ -221,4 +276,39 @@ void scan_buttons()
   {
     current_row = 0;
   }
+}
+
+void shift_out(int data_pin, int clock_pin, uint16_t data_out, int data_size)
+{
+  int pin_state;
+  pinMode(clock_pin, OUTPUT);
+  pinMode(data_pin, OUTPUT);
+
+  digitalWrite(data_pin, 0);
+  digitalWrite(clock_pin, 0);
+
+  for (int i = data_size - 1; i >= 0; i--)
+  {
+    digitalWrite(clock_pin, 0);
+    if (data_out & (1 << i))
+    {
+      pin_state = 1;
+    }
+    else
+    {
+      pin_state = 0;
+    }
+
+    digitalWrite(data_pin, pin_state);
+    digitalWrite(clock_pin, 1);
+    digitalWrite(data_pin, 0);
+  }
+  digitalWrite(clock_pin, 0);
+}
+
+void clear_buttons()
+{
+  digitalWrite(LATCH_PIN, 0);
+  shift_out(DATA_PIN, CLOCK_PIN, 0x0000, 16);
+  digitalWrite(LATCH_PIN, 1);
 }
