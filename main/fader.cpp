@@ -1,44 +1,11 @@
 #include "fader.hpp"
+#include "midi_controls.hpp"
 
-Fader::Fader() {}
-
-Fader::Fader(byte channel, byte pitch)
+void toggle_fader(Fader &fader, int voltage)
 {
-  this->channel = channel;
-  this->pitch = pitch;
-  this->current_voltage = 0;
-}
-
-void Fader::toggle(int voltage)
-{
-  if (getVoltage() == 0 && voltage < 19)
+  if (voltage > fader.current_voltage + 1 || voltage < fader.current_voltage - 1)
   {
-    return;
+    fader.current_voltage = voltage;
+    toggle(fader.channel, fader.pitch, voltage);
   }
-
-  if (voltage > getVoltage() + 1 || voltage < getVoltage() - 1)
-  {
-    if (voltage < 19)
-    {
-      setVoltage(0);
-      Control::toggle(getVoltage());
-    }
-    else
-    {
-      setVoltage(voltage);
-      Control::toggle(getVoltage());
-      // Serial.print("TOGGLED FADER: ");
-      // Serial.println(getVoltage());
-    }
-  }
-}
-
-int Fader::getVoltage()
-{
-  return this->current_voltage;
-}
-
-void Fader::setVoltage(int voltage)
-{
-  this->current_voltage = voltage;
 }

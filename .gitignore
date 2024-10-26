@@ -3,6 +3,7 @@
 
 bom/
 datasheets/
+pcb_designs/
 
 ### C++ ###
 # Prerequisites

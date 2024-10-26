@@ -1,13 +1,12 @@
-#include <Arduino.h>
-#include <HardwareSerial.h>
-#include "vins.hpp"
+// #include <Arduino.h>
+// #include <HardwareSerial.h>
 #include "midi_controls.hpp"
 #include "button.hpp"
 #include "fader.hpp"
 
 // Define the default channel for all controls to operate on. There will
 // eventually be a macro or something to change this on the fly.
-#define CHANNEL 0
+uint8_t CHANNEL = 0;
 
 // Both button banks function identically, but are labeled as 'solo' and 'mute'
 // to keep track of which pin takes what bank on the physical board.
@@ -24,22 +23,25 @@
 #define FADER_7 A10
 #define FADER_8 A11
 
-#define BUTTON_ROW_0 2
-#define BUTTON_ROW_1 3
-#define BUTTON_ROW_2 4
-#define BUTTON_ROW_3 5
+uint8_t BUTTON_ROW_1 = 3;
+uint8_t BUTTON_ROW_0 = 2;
+uint8_t BUTTON_ROW_2 = 4;
+uint8_t BUTTON_ROW_3 = 5;
 
-#define BUTTON_COL_0 6
-#define BUTTON_COL_1 7
-#define BUTTON_COL_2 8
-#define BUTTON_COL_3 9
+uint8_t BUTTON_COL_0 = 6;
+uint8_t BUTTON_COL_1 = 7;
+uint8_t BUTTON_COL_2 = 8;
+uint8_t BUTTON_COL_3 = 9;
 
-#define MAX_DEBOUNCE 3
+uint8_t MAX_DEBOUNCE = 3;
 
 // https://cdn-shop.adafruit.com/datasheets/sn74hc595.pdf
-#define DATA_PIN 11 // SER
-#define CLOCK_PIN 0 // SRCLK
-#define LATCH_PIN 1 // RCLK
+uint8_t DATA_PIN = 11; // SER
+uint8_t CLOCK_PIN = 0; // SRCLK
+uint8_t LATCH_PIN = 1; // RCLK
+
+uint8_t FADER_BASE_PITCH = 41;
+uint8_t BUTTON_BASE_PITCH = 51;
 
 // Initialize the arrays to store the Button and Fader objects, as well as the
 // Fader pins and voltages.
@@ -72,31 +74,32 @@ void setup()
   //  5  6  7  8
   // 13 14 15 16
 
-  // will use d4-d11:
-  //   d4-d7  for row,
-  //   d8-d11 for col
-  // Construct all Buttons and Faders inside their respective arrays. The
-  // 'pitch' is the command sent to the receiver, and is arbitrarily chosen.
+  // pitches
+  // 51 52 53 54
+  // 59 60 61 62
+  // 55 56 57 58
+  // 63 64 65 66
 
+  int pitch_counter = 0;
+  int i, j;
   // solo button
-  buttons[0][0] = Button(CHANNEL, 51);
-  buttons[0][1] = Button(CHANNEL, 52);
-  buttons[0][2] = Button(CHANNEL, 53);
-  buttons[0][3] = Button(CHANNEL, 54);
-  buttons[2][0] = Button(CHANNEL, 55);
-  buttons[2][1] = Button(CHANNEL, 56);
-  buttons[2][2] = Button(CHANNEL, 57);
-  buttons[2][3] = Button(CHANNEL, 58);
-
-  // mute button
-  buttons[1][0] = Button(CHANNEL, 59);
-  buttons[1][1] = Button(CHANNEL, 60);
-  buttons[1][2] = Button(CHANNEL, 62);
-  buttons[1][3] = Button(CHANNEL, 63);
-  buttons[3][0] = Button(CHANNEL, 64);
-  buttons[3][1] = Button(CHANNEL, 65);
-  buttons[3][2] = Button(CHANNEL, 66);
-  buttons[3][3] = Button(CHANNEL, 67);
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      if (i == 1 || i == 3)
+      {
+        buttons[i][j].channel = CHANNEL;
+        buttons[i][j].pitch = BUTTON_BASE_PITCH + 4 + pitch_counter;
+      }
+      else
+      {
+        buttons[i][j].channel = CHANNEL;
+        buttons[i][j].pitch = BUTTON_BASE_PITCH + pitch_counter;
+      }
+      pitch_counter++;
+    }
+  }
 
   // solo led
   leds[1][0] = 0x0100; // 0b 0000 0001  0000 0000
@@ -117,10 +120,6 @@ void setup()
   leds[2][1] = 0x0020; // 0b 0000 0000  0010 0000
   leds[2][2] = 0x0040; // 0b 0000 0000  0100 0000
   leds[2][3] = 0x0080; // 0b 0000 0000  1000 0000
-
-  pinMode(LATCH_PIN, OUTPUT);
-  pinMode(DATA_PIN, OUTPUT);
-  pinMode(CLOCK_PIN, OUTPUT);
 
   button_pin_rows[0] = BUTTON_ROW_0;
   button_pin_rows[1] = BUTTON_ROW_1;
@@ -149,14 +148,12 @@ void setup()
     pinMode(button_pin_cols[i], INPUT_PULLUP);
   }
 
-  fader_bank[0] = Fader(CHANNEL, 41);
-  fader_bank[1] = Fader(CHANNEL, 42);
-  fader_bank[2] = Fader(CHANNEL, 43);
-  fader_bank[3] = Fader(CHANNEL, 44);
-  fader_bank[4] = Fader(CHANNEL, 45);
-  fader_bank[5] = Fader(CHANNEL, 46);
-  fader_bank[6] = Fader(CHANNEL, 47);
-  fader_bank[7] = Fader(CHANNEL, 48);
+  pitch_counter = 0;
+  for (i = 0; i < 4; i++)
+  {
+    fader_bank[i].channel = CHANNEL;
+    fader_bank[i].pitch = FADER_BASE_PITCH + pitch_counter++;
+  }
 
   fader_pins[0] = FADER_1;
   fader_pins[1] = FADER_2;
@@ -167,11 +164,6 @@ void setup()
   fader_pins[6] = FADER_7;
   fader_pins[7] = FADER_8;
 
-  // Start the serial interface for debugging and set all pins to INPUT, using
-  // 0 as v_ref.
-  // BREAKS DIGITAL BUTTONS! DO NOT USE IN PROD!
-  // Serial.begin(9600);
-
   pinMode(FADER_1, INPUT);
   pinMode(FADER_2, INPUT);
   pinMode(FADER_3, INPUT);
@@ -180,8 +172,16 @@ void setup()
   pinMode(FADER_6, INPUT);
   pinMode(FADER_7, INPUT);
   pinMode(FADER_8, INPUT);
+  pinMode(LATCH_PIN, OUTPUT);
+  pinMode(DATA_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
 
   clear_buttons();
+
+  // Start the serial interface for debugging and set all pins to INPUT, using
+  // 0 as v_ref.
+  // BREAKS DIGITAL BUTTONS! DO NOT USE IN PROD!
+  // Serial.begin(9600);
 }
 
 void loop()
@@ -212,7 +212,7 @@ void loop()
  */
 void update_fader_voltage(Fader &fader, int voltage_in)
 {
-  fader.toggle(voltage_in);
+  toggle_fader(fader, voltage_in);
 }
 
 // physical layout of buttons
@@ -238,22 +238,11 @@ void scan_buttons()
       debounce[current_row][current_col]++;
       if (debounce[current_row][current_col] == MAX_DEBOUNCE)
       {
-        buttons[current_row][current_col].toggle();
+        toggle_button(buttons[current_row][current_col]);
         current_depressed = current_depressed | leds[current_row][current_col];
         digitalWrite(LATCH_PIN, 0);
         shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
         digitalWrite(LATCH_PIN, 1);
-        // if ((current_row == 0) || (current_row == 2))
-        // {
-        //   // write_register(leds[current_row][current_col], 0x00);
-        // }
-        // else
-        // {
-        //   digitalWrite(LATCH_PIN, 0);
-        //   shift_out(DATA_PIN, CLOCK_PIN, leds[current_row][current_col]);
-        //   digitalWrite(LATCH_PIN, 1);
-        //   // write_register(0x00, leds[current_row][current_col]);
-        // }
       }
     }
     else

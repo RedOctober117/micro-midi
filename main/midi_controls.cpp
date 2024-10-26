@@ -21,6 +21,11 @@ void latch_command(byte channel, byte controller, byte value)
   MidiUSB.flush();
 }
 
+void toggle(byte channel, byte pitch, byte velocity)
+{
+  latch_command(channel, pitch, velocity);
+}
+
 // void noteOn(byte channel, byte pitch, byte velocity)
 // {
 //   midiEventPacket_t noteOn = {0x09, 0x90 | channel, pitch, velocity};
