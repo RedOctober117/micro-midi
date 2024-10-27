@@ -63,7 +63,7 @@ int fader_voltages[8];
 // per press. This will change depending on the quality of the final product.
 unsigned long delay_amount = 200;
 
-ShiftOutRegister led_registers;
+ShiftOutRegister led_registers = new_register(2, DATA_PIN, CLOCK_PIN, LATCH_PIN);
 
 void setup()
 {
@@ -180,21 +180,21 @@ void setup()
   pinMode(DATA_PIN, OUTPUT);
   pinMode(CLOCK_PIN, OUTPUT);
 
-  ShiftOutRegister led_registers =
-      {
-          0,
-          2,
-          DATA_PIN,
-          CLOCK_PIN,
-          LATCH_PIN,
-      };
+  // ShiftOutRegister led_registers =
+  //     {
+  //         0,
+  //         2,
+  //         DATA_PIN,
+  //         CLOCK_PIN,
+  //         LATCH_PIN,
+  //     };
 
   // clear_buttons(led_registers);
 
   // Start the serial interface for debugging and set all pins to INPUT, using
   // 0 as v_ref.
   // BREAKS DIGITAL BUTTONS! DO NOT USE IN PROD!
-  // Serial.begin(9600);
+  // Serial.begin(115200);
 }
 
 void loop()
@@ -273,14 +273,14 @@ void scan_buttons()
       {
         debounce[current_row][current_col]--;
         // uint8_t outbound = led_registers.current_value ^ leds[current_row][current_col];
-        // if (current_row == 0 || current_row == 2)
-        // {
-        //   erase_bit(led_registers, leds[current_row][current_col], 0);
-        // }
-        // else
-        // {
-        //   erase_bit(led_registers, leds[current_row][current_col], 1);
-        // }
+        if (current_row == 0 || current_row == 2)
+        {
+          erase_bit(led_registers, leds[current_row][current_col], 0);
+        }
+        else
+        {
+          erase_bit(led_registers, leds[current_row][current_col], 1);
+        }
         // digitalWrite(LATCH_PIN, 0);
         // shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
         // digitalWrite(LATCH_PIN, 1);
