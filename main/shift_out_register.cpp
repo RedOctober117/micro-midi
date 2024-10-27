@@ -1,6 +1,6 @@
 #include "shift_out_register.hpp"
 
-void shift_out(ShiftOutRegister reg, unsigned long outbound_data, unsigned int data_size)
+void shift_out(ShiftOutRegister2 reg, uint16_t outbound_data, uint8_t data_size)
 {
     int pin_state;
     pinMode(reg.clock_pin, OUTPUT);
@@ -12,6 +12,7 @@ void shift_out(ShiftOutRegister reg, unsigned long outbound_data, unsigned int d
     for (int i = data_size - 1; i >= 0; i--)
     {
         digitalWrite(reg.clock_pin, 0);
+
         if (outbound_data & (1 << i))
         {
             pin_state = 1;
@@ -20,13 +21,11 @@ void shift_out(ShiftOutRegister reg, unsigned long outbound_data, unsigned int d
         {
             pin_state = 0;
         }
-        Serial.print(pin_state);
 
         digitalWrite(reg.data_pin, pin_state);
         digitalWrite(reg.clock_pin, 1);
         digitalWrite(reg.data_pin, 0);
     }
-    Serial.println();
     digitalWrite(reg.clock_pin, 0);
 }
 
@@ -34,37 +33,56 @@ void shift_out(ShiftOutRegister reg, unsigned long outbound_data, unsigned int d
 /// @param reg
 /// @param outbound_data
 /// @param target_reg
-void write(ShiftOutRegister &reg, uint8_t outbound_data, uint8_t target_reg)
+void write(ShiftOutRegister2 &reg, uint8_t outbound_data, uint8_t target_reg)
 {
     int offset = target_reg * 8;
-    unsigned int offset_outbound_data = outbound_data;
-    for (int i = offset - 1; i >= 0; i--)
-    {
-        offset_outbound_data = offset_outbound_data << 1;
-    }
-    Serial.println(reg.current_value);
+    uint16_t offset_outbound_data = 0x0000;
+    offset_outbound_data = outbound_data << offset;
+    offset_outbound_data = outbound_data | 0x0000;
+
+    // Serial.print("offset: ");
+    // Serial.print(offset);
+    // Serial.print(" ");
+    // bits_to_serial(offset_outbound_data, (8 * sizeof(offset_outbound_data)));
+
+    // bits_to_serial(reg.current_value, (8 * sizeof(reg.current_value)));
     reg.current_value = reg.current_value | offset_outbound_data;
-    Serial.println(reg.current_value);
+    // bits_to_serial(reg.current_value, (8 * sizeof(reg.current_value)));
+
     digitalWrite(reg.latch_pin, 0);
-
-    shift_out(reg, offset_outbound_data, (8 * sizeof(offset_outbound_data)));
-
+    shift_out(reg, reg.current_value, (8 * sizeof(reg.current_value)));
     digitalWrite(reg.latch_pin, 1);
 }
 
-void erase_bit(ShiftOutRegister &reg, uint8_t outbound_data, uint8_t target_reg)
+void erase_bit(ShiftOutRegister2 &reg, uint8_t outbound_data, uint8_t target_reg)
 {
     int offset = target_reg * 8;
-    unsigned int offset_outbound_data = outbound_data;
-    for (int i = offset - 1; i >= 0; i--)
-    {
-        offset_outbound_data = offset_outbound_data << 1;
-    }
+    uint16_t offset_outbound_data;
+    offset_outbound_data = outbound_data << offset;
+    offset_outbound_data = outbound_data | 0x0000;
 
     reg.current_value = reg.current_value ^ offset_outbound_data;
+
     digitalWrite(reg.latch_pin, 0);
-
     shift_out(reg, reg.current_value, (8 * sizeof(reg.current_value)));
-
     digitalWrite(reg.latch_pin, 1);
+}
+
+/// @brief Prints bits to serial in BE.
+/// @param bits
+/// @param size
+void bits_to_serial(int bits, unsigned int size)
+{
+    for (int i = size - 1; i >= 0; i--)
+    {
+        if ((bits & (1 << i)))
+        {
+            Serial.print(1);
+        }
+        else
+        {
+            Serial.print(0);
+        }
+    }
+    Serial.println();
 }
