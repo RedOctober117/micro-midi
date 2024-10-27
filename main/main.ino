@@ -3,6 +3,7 @@
 #include "midi_controls.hpp"
 #include "button.hpp"
 #include "fader.hpp"
+#include "shift_out_register.hpp"
 
 // Define the default channel for all controls to operate on. There will
 // eventually be a macro or something to change this on the fly.
@@ -56,11 +57,13 @@ Fader fader_bank[8];
 uint8_t fader_pins[8];
 int fader_voltages[8];
 
-uint16_t current_depressed = 0x0000;
+// uint16_t current_depressed = 0x0000;
 
 // My test board requires a delay to prevent the button from actuating twice
 // per press. This will change depending on the quality of the final product.
 unsigned long delay_amount = 200;
+
+ShiftOutRegister led_registers;
 
 void setup()
 {
@@ -102,24 +105,24 @@ void setup()
   }
 
   // solo led
-  leds[1][0] = 0x0100; // 0b 0000 0001  0000 0000
-  leds[1][1] = 0x0200; // 0b 0000 0010  0000 0000
-  leds[1][2] = 0x0400; // 0b 0000 0100  0000 0000
-  leds[1][3] = 0x0800; // 0b 0000 1000  0000 0000
-  leds[3][0] = 0x1000; // 0b 0001 0000  0000 0000
-  leds[3][1] = 0x2000; // 0b 0010 0000  0000 0000
-  leds[3][2] = 0x4000; // 0b 0100 0000  0000 0000
-  leds[3][3] = 0x8000; // 0b 1000 0000  0000 0000
+  leds[1][0] = 0x01; // 0b 0000 0001
+  leds[1][1] = 0x02; // 0b 0000 0010
+  leds[1][2] = 0x04; // 0b 0000 0100
+  leds[1][3] = 0x08; // 0b 0000 1000
+  leds[3][0] = 0x10; // 0b 0001 0000
+  leds[3][1] = 0x20; // 0b 0010 0000
+  leds[3][2] = 0x40; // 0b 0100 0000
+  leds[3][3] = 0x80; // 0b 1000 0000
 
   // mute led
-  leds[0][0] = 0x0001; // 0b 0000 0000  0000 0001
-  leds[0][1] = 0x0002; // 0b 0000 0000  0000 0010
-  leds[0][2] = 0x0004; // 0b 0000 0000  0000 0100
-  leds[0][3] = 0x0008; // 0b 0000 0000  0000 1000
-  leds[2][0] = 0x0010; // 0b 0000 0000  0001 0000
-  leds[2][1] = 0x0020; // 0b 0000 0000  0010 0000
-  leds[2][2] = 0x0040; // 0b 0000 0000  0100 0000
-  leds[2][3] = 0x0080; // 0b 0000 0000  1000 0000
+  leds[0][0] = 0x01; // 0b 0000 0000
+  leds[0][1] = 0x02; // 0b 0000 0000
+  leds[0][2] = 0x04; // 0b 0000 0000
+  leds[0][3] = 0x08; // 0b 0000 0000
+  leds[2][0] = 0x10; // 0b 0000 0000
+  leds[2][1] = 0x20; // 0b 0000 0000
+  leds[2][2] = 0x40; // 0b 0000 0000
+  leds[2][3] = 0x80; // 0b 0000 0000
 
   button_pin_rows[0] = BUTTON_ROW_0;
   button_pin_rows[1] = BUTTON_ROW_1;
@@ -172,11 +175,21 @@ void setup()
   pinMode(FADER_6, INPUT);
   pinMode(FADER_7, INPUT);
   pinMode(FADER_8, INPUT);
+
   pinMode(LATCH_PIN, OUTPUT);
   pinMode(DATA_PIN, OUTPUT);
   pinMode(CLOCK_PIN, OUTPUT);
 
-  clear_buttons();
+  ShiftOutRegister led_registers =
+      {
+          0,
+          2,
+          DATA_PIN,
+          CLOCK_PIN,
+          LATCH_PIN,
+      };
+
+  // clear_buttons(led_registers);
 
   // Start the serial interface for debugging and set all pins to INPUT, using
   // 0 as v_ref.
@@ -239,10 +252,19 @@ void scan_buttons()
       if (debounce[current_row][current_col] == MAX_DEBOUNCE)
       {
         toggle_button(buttons[current_row][current_col]);
-        current_depressed = current_depressed | leds[current_row][current_col];
-        digitalWrite(LATCH_PIN, 0);
-        shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
-        digitalWrite(LATCH_PIN, 1);
+        // current_depressed = current_depressed | leds[current_row][current_col];
+        if (current_row == 0 || current_row == 2)
+        {
+          write(led_registers, leds[current_row][current_col], 0);
+        }
+        else
+        {
+          write(led_registers, leds[current_row][current_col], 1);
+        }
+
+        // digitalWrite(LATCH_PIN, 0);
+        // shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
+        // digitalWrite(LATCH_PIN, 1);
       }
     }
     else
@@ -250,10 +272,18 @@ void scan_buttons()
       if (debounce[current_row][current_col] > 0)
       {
         debounce[current_row][current_col]--;
-        current_depressed = current_depressed ^ leds[current_row][current_col];
-        digitalWrite(LATCH_PIN, 0);
-        shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
-        digitalWrite(LATCH_PIN, 1);
+        // uint8_t outbound = led_registers.current_value ^ leds[current_row][current_col];
+        // if (current_row == 0 || current_row == 2)
+        // {
+        //   erase_bit(led_registers, leds[current_row][current_col], 0);
+        // }
+        // else
+        // {
+        //   erase_bit(led_registers, leds[current_row][current_col], 1);
+        // }
+        // digitalWrite(LATCH_PIN, 0);
+        // shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
+        // digitalWrite(LATCH_PIN, 1);
       }
     }
   }
@@ -267,37 +297,13 @@ void scan_buttons()
   }
 }
 
-void shift_out(int data_pin, int clock_pin, uint16_t data_out, int data_size)
+void clear_buttons(ShiftOutRegister &reg)
 {
-  int pin_state;
-  pinMode(clock_pin, OUTPUT);
-  pinMode(data_pin, OUTPUT);
-
-  digitalWrite(data_pin, 0);
-  digitalWrite(clock_pin, 0);
-
-  for (int i = data_size - 1; i >= 0; i--)
+  for (int i = 0; i < reg.total_registers; i++)
   {
-    digitalWrite(clock_pin, 0);
-    if (data_out & (1 << i))
-    {
-      pin_state = 1;
-    }
-    else
-    {
-      pin_state = 0;
-    }
-
-    digitalWrite(data_pin, pin_state);
-    digitalWrite(clock_pin, 1);
-    digitalWrite(data_pin, 0);
+    write(reg, 0x00, i);
   }
-  digitalWrite(clock_pin, 0);
-}
-
-void clear_buttons()
-{
-  digitalWrite(LATCH_PIN, 0);
-  shift_out(DATA_PIN, CLOCK_PIN, 0x0000, 16);
-  digitalWrite(LATCH_PIN, 1);
+  // digitalWrite(LATCH_PIN, 0);
+  // shift_out(DATA_PIN, CLOCK_PIN, 0x0000, 16);
+  // digitalWrite(LATCH_PIN, 1);
 }
