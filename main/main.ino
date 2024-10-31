@@ -23,8 +23,8 @@ uint8_t CHANNEL = 0;
 #define FADER_7 A10
 #define FADER_8 A11
 
-uint8_t BUTTON_ROW_1 = 3;
 uint8_t BUTTON_ROW_0 = 2;
+uint8_t BUTTON_ROW_1 = 3;
 uint8_t BUTTON_ROW_2 = 4;
 uint8_t BUTTON_ROW_3 = 5;
 
@@ -65,7 +65,7 @@ unsigned long delay_amount = 200;
 void setup()
 {
   // physical layout of buttons:
-  //  1  2  3  4 5  6  7  8
+  //  1  2  3  4  5  6  7  8
   //  9 10 11 12 13 14 15 16
 
   // logical and wired layout of buttons:
@@ -100,6 +100,14 @@ void setup()
       pitch_counter++;
     }
   }
+
+  // 0001 0002 0004 0008
+  // 0100 0200 0400 0800
+  // 0010 0020 0040 0080
+  // 1000 2000 4000 8000
+
+  // 0001 0002 0004 0008 0010 0020 0040 0080
+  // 0100 0200 0400 0800 1000 2000 4000 8000
 
   // solo led
   leds[1][0] = 0x0100; // 0b 0000 0001  0000 0000
