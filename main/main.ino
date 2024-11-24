@@ -87,14 +87,17 @@ void setup()
   {
     for (j = 0; j < 4; j++)
     {
-      if (i == 1 || i == 3)
+      buttons[i][j].channel = CHANNEL;
+      if (i == 1)
       {
-        buttons[i][j].channel = CHANNEL;
         buttons[i][j].pitch = BUTTON_BASE_PITCH + 4 + pitch_counter;
+      }
+      else if (i == 2)
+      {
+        buttons[i][j].pitch = BUTTON_BASE_PITCH - 4 + pitch_counter;
       }
       else
       {
-        buttons[i][j].channel = CHANNEL;
         buttons[i][j].pitch = BUTTON_BASE_PITCH + pitch_counter;
       }
       pitch_counter++;
@@ -247,7 +250,7 @@ void scan_buttons()
       if (debounce[current_row][current_col] == MAX_DEBOUNCE)
       {
         toggle_button(buttons[current_row][current_col]);
-        current_depressed = current_depressed | leds[current_row][current_col];
+        current_depressed = current_depressed ^ leds[current_row][current_col];
         digitalWrite(LATCH_PIN, 0);
         shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
         digitalWrite(LATCH_PIN, 1);
@@ -258,10 +261,6 @@ void scan_buttons()
       if (debounce[current_row][current_col] > 0)
       {
         debounce[current_row][current_col]--;
-        current_depressed = current_depressed ^ leds[current_row][current_col];
-        digitalWrite(LATCH_PIN, 0);
-        shift_out(DATA_PIN, CLOCK_PIN, current_depressed, 16);
-        digitalWrite(LATCH_PIN, 1);
       }
     }
   }
