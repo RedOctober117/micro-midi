@@ -1,3 +1,12 @@
+# Pin Table
+| Source | Pin Number | Destination | Destination Pin | Pin Name |
+|-|-|-|-|-|
+|Arduino|0|Upstream 74HC595|11|SRCLK|
+|Arduino|1|Upstream 74HC595|12|RCLK|
+|Arduino|GND|Upstream 74HC595|13|OE|
+|Arduino|11|Upstream 74HC595|14|SER|
+|Arduino|5v|Upstream 74HC595|16|V_CC|
+
 Monitoring MIDI input on Ubuntu
 ```
 aseqdump -l

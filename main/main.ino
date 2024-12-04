@@ -39,6 +39,9 @@ uint8_t MAX_DEBOUNCE = 3;
 uint8_t DATA_PIN = 11; // SER   arduino pin 11 -> IC pin 14
 uint8_t CLOCK_PIN = 0; // SRCLK arduino pin  0 -> IC pin 11
 uint8_t LATCH_PIN = 1; // RCLK  arduino pin  1 -> IC pin 12
+//                        IC pin 16 -> 5v
+//                        IC pin OE -> GND
+//
 
 uint8_t FADER_BASE_PITCH = 41;
 uint8_t BUTTON_BASE_PITCH = 51;
