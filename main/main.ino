@@ -36,9 +36,9 @@ uint8_t BUTTON_COL_3 = 9;
 uint8_t MAX_DEBOUNCE = 3;
 
 // https://cdn-shop.adafruit.com/datasheets/sn74hc595.pdf
-uint8_t DATA_PIN = 11; // SER
-uint8_t CLOCK_PIN = 0; // SRCLK
-uint8_t LATCH_PIN = 1; // RCLK
+uint8_t DATA_PIN = 11; // SER   arduino pin 11 -> IC pin 14
+uint8_t CLOCK_PIN = 0; // SRCLK arduino pin  0 -> IC pin 11
+uint8_t LATCH_PIN = 1; // RCLK  arduino pin  1 -> IC pin 12
 
 uint8_t FADER_BASE_PITCH = 41;
 uint8_t BUTTON_BASE_PITCH = 51;
