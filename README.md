@@ -1,6 +1,7 @@
 # Pin Table
 | Source | Pin Number | Destination | Destination Pin | Pin Name |
 |-|-|-|-|-|
+|Arduino|GND|Upstream 74HC595|8|GND|
 |Arduino|0|Upstream 74HC595|11|SRCLK|
 |Arduino|1|Upstream 74HC595|12|RCLK|
 |Arduino|GND|Upstream 74HC595|13|OE|
